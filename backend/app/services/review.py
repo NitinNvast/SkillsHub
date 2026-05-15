@@ -1,4 +1,5 @@
 """Review & approval service."""
+
 from __future__ import annotations
 
 import logging
@@ -68,12 +69,8 @@ async def list_pending(session: AsyncSession) -> list[ReviewQueueItem]:
     return items
 
 
-async def get_review_detail(
-    session: AsyncSession, upload_id: UUID
-) -> ReviewQueueDetail | None:
-    result = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+async def get_review_detail(session: AsyncSession, upload_id: UUID) -> ReviewQueueDetail | None:
+    result = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     upload = result.scalar_one_or_none()
     if upload is None:
         return None
@@ -107,16 +104,12 @@ async def edit_profile(
     reviewer_id: UUID,
 ) -> ReviewQueueDetail | None:
     """Apply manual edits to the employee record before approval."""
-    result = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+    result = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     upload = result.scalar_one_or_none()
     if upload is None or upload.employee_id is None:
         return None
 
-    emp_result = await session.execute(
-        select(Employee).where(Employee.id == upload.employee_id)
-    )
+    emp_result = await session.execute(select(Employee).where(Employee.id == upload.employee_id))
     emp = emp_result.scalar_one_or_none()
     if emp is None:
         return None
@@ -142,9 +135,7 @@ async def approve(
       1. Mark upload as approved
       2. Re-embed employee (captures any manual edits)
     """
-    result = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+    result = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     upload = result.scalar_one_or_none()
     if upload is None:
         return None
@@ -158,6 +149,7 @@ async def approve(
     if upload.employee_id:
         try:
             from app.ai.pipelines.search import embed_employee
+
             await embed_employee(session, upload.employee_id)
         except Exception as exc:
             log.warning("Re-embed failed for %s: %s", upload.employee_id, exc)
@@ -176,9 +168,7 @@ async def reject(
     reviewer_id: UUID,
     reason: str | None = None,
 ) -> RejectResponse | None:
-    result = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+    result = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     upload = result.scalar_one_or_none()
     if upload is None:
         return None
@@ -191,9 +181,7 @@ async def reject(
 
     # Delete the placeholder employee row if it was auto-created
     if upload.employee_id:
-        emp_res = await session.execute(
-            select(Employee).where(Employee.id == upload.employee_id)
-        )
+        emp_res = await session.execute(select(Employee).where(Employee.id == upload.employee_id))
         emp = emp_res.scalar_one_or_none()
         if emp and emp.name == "Pending Review":
             await session.delete(emp)

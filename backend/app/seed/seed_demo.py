@@ -6,6 +6,7 @@ Run inside the backend container:
 Full demo profiles (10–15 employees) are loaded by a separate seed script in Step 14.
 This script is idempotent — re-running won't duplicate rows.
 """
+
 import asyncio
 
 from sqlalchemy import select

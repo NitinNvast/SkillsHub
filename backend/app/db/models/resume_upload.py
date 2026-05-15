@@ -3,6 +3,7 @@
 This is the staging area for the review queue. Approved uploads result in
 employees + skills + projects being committed.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -39,8 +40,8 @@ class ResumeUpload(Base):
     )
 
     source: Mapped[str] = mapped_column(String(20), nullable=False)  # UploadSource
-    file_path: Mapped[str | None] = mapped_column(String(1024))      # local disk path for PDFs
-    raw_text: Mapped[str | None] = mapped_column(Text)               # extracted text
+    file_path: Mapped[str | None] = mapped_column(String(1024))  # local disk path for PDFs
+    raw_text: Mapped[str | None] = mapped_column(Text)  # extracted text
     status: Mapped[str] = mapped_column(String(20), default="processing", nullable=False)
 
     # The complete LLM extraction output (StructuredProfile JSON).

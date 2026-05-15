@@ -1,4 +1,5 @@
 """Application settings loaded from env vars."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -40,7 +41,7 @@ class Settings(BaseSettings):
 
     # ─── Search ────────────────────────────────────────────
     search_top_k_retrieval: int = 20  # vector pre-filter
-    search_top_k_rerank: int = 8      # final results shown to user
+    search_top_k_rerank: int = 8  # final results shown to user
 
 
 settings = Settings()  # type: ignore[call-arg]

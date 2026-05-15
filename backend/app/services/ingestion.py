@@ -12,6 +12,7 @@ Flow (per upload):
 Steps 4–6 are the AI-heavy part — extraction.py / inference.py are built in Steps 7–8.
 This file wires the orchestration so uploads are testable end-to-end immediately.
 """
+
 from __future__ import annotations
 
 import logging
@@ -34,6 +35,7 @@ UPLOAD_DIR = Path(settings.upload_dir)
 
 # ─── PDF parsing ──────────────────────────────────────────────────────────────
 
+
 def extract_text_from_pdf(pdf_bytes: bytes) -> tuple[str, bool]:
     """
     Returns (text, is_good_quality).
@@ -43,6 +45,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> tuple[str, bool]:
     in that case callers should fall back to Claude vision.
     """
     import io
+
     reader = PdfReader(io.BytesIO(pdf_bytes))
     pages: list[str] = []
     for page in reader.pages:
@@ -57,6 +60,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> tuple[str, bool]:
 def sanitize_text(text: str) -> str:
     """Remove excessive whitespace while preserving paragraph structure."""
     import re
+
     # Collapse 3+ newlines into 2
     text = re.sub(r"\n{3,}", "\n\n", text)
     # Collapse runs of spaces/tabs on a single line
@@ -65,6 +69,7 @@ def sanitize_text(text: str) -> str:
 
 
 # ─── Save file ────────────────────────────────────────────────────────────────
+
 
 def save_pdf(pdf_bytes: bytes, employee_id: uuid.UUID) -> str:
     dest_dir = UPLOAD_DIR / str(employee_id)
@@ -76,6 +81,7 @@ def save_pdf(pdf_bytes: bytes, employee_id: uuid.UUID) -> str:
 
 
 # ─── Upsert helpers ───────────────────────────────────────────────────────────
+
 
 async def get_or_create_employee(
     session: AsyncSession,
@@ -108,6 +114,7 @@ async def get_or_create_employee(
 
 
 # ─── Main orchestration ───────────────────────────────────────────────────────
+
 
 async def ingest_pdf(
     session: AsyncSession,
@@ -152,6 +159,7 @@ async def ingest_pdf(
     # 4. Run AI extraction pipeline (imported here to avoid circular deps at module load)
     try:
         from app.ai.pipelines.extraction import run_extraction_pipeline
+
         await run_extraction_pipeline(
             session=session,
             upload_id=upload.id,
@@ -204,6 +212,7 @@ async def ingest_text(
 
     try:
         from app.ai.pipelines.extraction import run_extraction_pipeline
+
         await run_extraction_pipeline(
             session=session,
             upload_id=upload.id,
@@ -227,7 +236,5 @@ async def ingest_text(
 
 
 async def get_upload_status(session: AsyncSession, upload_id: uuid.UUID) -> ResumeUpload | None:
-    result = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+    result = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     return result.scalar_one_or_none()

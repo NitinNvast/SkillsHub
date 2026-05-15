@@ -1,4 +1,5 @@
 """Semantic search endpoint — the HR-facing centerpiece."""
+
 from fastapi import APIRouter, Depends
 
 from app.ai.pipelines.search import run_semantic_search

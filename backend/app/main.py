@@ -1,4 +1,5 @@
 """SkillsHub FastAPI entrypoint."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -50,9 +51,9 @@ async def health():
 
 
 # Routers
-app.include_router(auth.router,      prefix="/auth",      tags=["auth"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(employees.router, prefix="/employees", tags=["employees"])
-app.include_router(skills.router,    prefix="/skills",       tags=["skills"])
-app.include_router(uploads.router,   prefix="/uploads",      tags=["uploads"])
-app.include_router(search.router,    prefix="/search",       tags=["search"])
-app.include_router(review.router,    prefix="/review-queue", tags=["review"])
+app.include_router(skills.router, prefix="/skills", tags=["skills"])
+app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
+app.include_router(search.router, prefix="/search", tags=["search"])
+app.include_router(review.router, prefix="/review-queue", tags=["review"])

@@ -1,4 +1,5 @@
 """Employee repository — upsert from extraction pipeline output."""
+
 from __future__ import annotations
 
 import logging
@@ -29,7 +30,7 @@ async def load_skill_catalog(session: AsyncSession) -> dict[str, Skill]:
     catalog: dict[str, Skill] = {}
     for s in skills:
         catalog[s.name.lower()] = s
-        for alias in (s.aliases or []):
+        for alias in s.aliases or []:
             catalog[alias.lower()] = s
     return catalog
 
@@ -56,13 +57,60 @@ async def find_or_create_skill(
 
 def _infer_category(name: str) -> str:
     n = name.lower()
-    if any(kw in n for kw in ["aws", "gcp", "azure", "k8s", "docker", "postgres", "mongo", "redis", "kafka"]):
+    if any(
+        kw in n
+        for kw in ["aws", "gcp", "azure", "k8s", "docker", "postgres", "mongo", "redis", "kafka"]
+    ):
         return SkillCategory.PLATFORM.value
-    if any(kw in n for kw in ["react", "vue", "angular", "next", "nest", "django", "flask", "spring", "rails", "express", "fastapi"]):
+    if any(
+        kw in n
+        for kw in [
+            "react",
+            "vue",
+            "angular",
+            "next",
+            "nest",
+            "django",
+            "flask",
+            "spring",
+            "rails",
+            "express",
+            "fastapi",
+        ]
+    ):
         return SkillCategory.FRAMEWORK.value
-    if any(kw in n for kw in ["python", "javascript", "typescript", "java", "go", "rust", "ruby", "kotlin", "swift", "c++", "c#", "sql", "bash"]):
+    if any(
+        kw in n
+        for kw in [
+            "python",
+            "javascript",
+            "typescript",
+            "java",
+            "go",
+            "rust",
+            "ruby",
+            "kotlin",
+            "swift",
+            "c++",
+            "c#",
+            "sql",
+            "bash",
+        ]
+    ):
         return SkillCategory.LANGUAGE.value
-    if any(kw in n for kw in ["payment", "machine learning", "devops", "realtime", "websocket", "nlp", "fintech", "healthcare"]):
+    if any(
+        kw in n
+        for kw in [
+            "payment",
+            "machine learning",
+            "devops",
+            "realtime",
+            "websocket",
+            "nlp",
+            "fintech",
+            "healthcare",
+        ]
+    ):
         return SkillCategory.DOMAIN.value
     return SkillCategory.TOOL.value
 
@@ -109,6 +157,7 @@ async def upsert_from_extraction(
     employee.summary = profile.summary or employee.summary
     if profile.total_years_exp is not None:
         from decimal import Decimal
+
         employee.total_years_exp = Decimal(str(round(profile.total_years_exp, 1)))
 
     # ─── Upsert skills ───────────────────────────────────────────
@@ -130,14 +179,18 @@ async def upsert_from_extraction(
     if inferred_skills:
         for inf in inferred_skills:
             all_skills.append(
-                type("_Inf", (), {
-                    "name": inf["name"],
-                    "proficiency": inf.get("proficiency", "intermediate"),
-                    "years": inf.get("years"),
-                    "evidence": inf.get("reasoning"),
-                    "confidence": inf.get("confidence", 0.75),
-                    "_source": SkillSource.INFERRED.value,
-                })()
+                type(
+                    "_Inf",
+                    (),
+                    {
+                        "name": inf["name"],
+                        "proficiency": inf.get("proficiency", "intermediate"),
+                        "years": inf.get("years"),
+                        "evidence": inf.get("reasoning"),
+                        "confidence": inf.get("confidence", 0.75),
+                        "_source": SkillSource.INFERRED.value,
+                    },
+                )()
             )
 
     for s in all_skills:
@@ -151,22 +204,25 @@ async def upsert_from_extraction(
         source = getattr(s, "_source", SkillSource.EXTRACTED.value)
 
         from decimal import Decimal
+
         session.add(
             EmployeeSkill(
                 employee_id=employee_id,
                 skill_id=skill_obj.id,
-                proficiency=s.proficiency if s.proficiency in ("novice", "intermediate", "expert") else "intermediate",
+                proficiency=s.proficiency
+                if s.proficiency in ("novice", "intermediate", "expert")
+                else "intermediate",
                 years=Decimal(str(round(s.years, 1))) if s.years is not None else None,
                 source=source,
-                confidence=Decimal(str(round(float(s.confidence), 2))) if s.confidence is not None else None,
+                confidence=Decimal(str(round(float(s.confidence), 2)))
+                if s.confidence is not None
+                else None,
                 evidence=getattr(s, "evidence", None),
             )
         )
 
     # ─── Replace projects ────────────────────────────────────────
-    proj_res = await session.execute(
-        select(Project).where(Project.employee_id == employee_id)
-    )
+    proj_res = await session.execute(select(Project).where(Project.employee_id == employee_id))
     for p in proj_res.scalars().all():
         await session.delete(p)
 

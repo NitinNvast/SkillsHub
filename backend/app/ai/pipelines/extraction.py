@@ -9,6 +9,7 @@ Flow:
   5. Trigger embedding update (Step 9)
   6. Mark upload status → pending_review
 """
+
 from __future__ import annotations
 
 import json
@@ -34,6 +35,7 @@ log = logging.getLogger(__name__)
 
 
 # ─── Raw LLM call ─────────────────────────────────────────────────────────────
+
 
 @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=2, max=8))
 async def _call_extraction(
@@ -72,7 +74,9 @@ async def _call_extraction(
     return StructuredProfile.model_validate(raw)
 
 
-async def _call_extraction_vision(pdf_bytes: bytes, canonical_skills: list[str]) -> StructuredProfile:
+async def _call_extraction_vision(
+    pdf_bytes: bytes, canonical_skills: list[str]
+) -> StructuredProfile:
     """
     Vision fallback for scanned/image-based PDFs.
     Sends the first 3 pages as base64 images to Claude.
@@ -95,22 +99,26 @@ async def _call_extraction_vision(pdf_bytes: bytes, canonical_skills: list[str])
         if images:
             for img in images[:2]:
                 img_b64 = base64.standard_b64encode(img.data).decode()
-                content.append({
-                    "type": "image",
-                    "source": {"type": "base64", "media_type": "image/png", "data": img_b64},
-                })
+                content.append(
+                    {
+                        "type": "image",
+                        "source": {"type": "base64", "media_type": "image/png", "data": img_b64},
+                    }
+                )
         # Always include any text present on the page
         text = page.extract_text() or ""
         if text.strip():
-            content.append({"type": "text", "text": f"Page {i+1} text:\n{text.strip()}"})
+            content.append({"type": "text", "text": f"Page {i + 1} text:\n{text.strip()}"})
 
     if not content:
         raise ValueError("PDF has no extractable text or images")
 
-    content.append({
-        "type": "text",
-        "text": "Please extract the structured profile from this resume. Call the extract_profile tool.",
-    })
+    content.append(
+        {
+            "type": "text",
+            "text": "Please extract the structured profile from this resume. Call the extract_profile tool.",
+        }
+    )
 
     response = await client.messages.create(
         model=settings.extraction_model,
@@ -132,6 +140,7 @@ async def _call_extraction_vision(pdf_bytes: bytes, canonical_skills: list[str])
 
 
 # ─── Main pipeline ────────────────────────────────────────────────────────────
+
 
 async def run_extraction_pipeline(
     session: AsyncSession,
@@ -169,14 +178,13 @@ async def run_extraction_pipeline(
     inferred: list[dict] = []
     try:
         from app.ai.pipelines.inference import run_inference
+
         inferred = await run_inference(profile.skills)
     except Exception as exc:
         log.warning("Inference skipped for upload %s: %s", upload_id, exc)
 
     # ── 4. Persist to DB ───────────────────────────────────────
-    upload_res = await session.execute(
-        select(ResumeUpload).where(ResumeUpload.id == upload_id)
-    )
+    upload_res = await session.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
     upload = upload_res.scalar_one_or_none()
     if upload is None:
         raise ValueError(f"Upload {upload_id} not found")
@@ -195,6 +203,7 @@ async def run_extraction_pipeline(
     # ── 5. Compute and store embedding ─────────────────────────
     try:
         from app.ai.pipelines.search import embed_employee
+
         await embed_employee(session, upload.employee_id)
     except Exception as exc:
         log.warning("Embedding skipped for upload %s: %s", upload_id, exc)

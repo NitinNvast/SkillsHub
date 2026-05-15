@@ -53,6 +53,73 @@ Open:
 
 ---
 
+## Local Development (Without Docker)
+
+### Prerequisites
+
+- Python 3.11+ with [`uv`](https://docs.astral.sh/uv/) installed
+- PostgreSQL 16 with the [pgvector extension](https://github.com/pgvector/pgvector)
+- Node.js 18+ and [pnpm](https://pnpm.io/)
+- API keys: `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`
+
+### Backend
+
+```bash
+cd backend
+
+# 1. Install dependencies
+uv sync
+
+# 2. Create backend/.env — copy from root .env.example, then change DATABASE_URL:
+#    If Postgres is running via Docker Compose (port 5433 on host):
+#      DATABASE_URL=postgresql+asyncpg://skillshub:skillshub_dev_pw@localhost:5433/skillshub
+#    If using a local Postgres install (default port 5432):
+#      DATABASE_URL=postgresql+asyncpg://<user>:<password>@localhost:5432/skillshub
+
+# 3. Enable pgvector in your Postgres database
+#    psql -U postgres -d skillshub -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+# 4. Run migrations
+uv run alembic upgrade head
+
+# 5. Seed demo users and skills catalog
+uv run python -m app.seed.seed_demo
+
+# 6. Seed 12 demo employee profiles (requires VOYAGE_API_KEY)
+uv run python -m app.seed.seed_employees
+
+# 7. Start the dev server (API on http://localhost:8000)
+uv run uvicorn app.main:app --reload
+```
+
+Interactive API docs are available at **http://localhost:8000/docs** once the server is running.
+
+### Frontend
+
+```bash
+cd frontend
+
+# Install dependencies
+pnpm install
+
+# Start the dev server (on http://localhost:3000)
+pnpm dev
+```
+
+Set `NEXT_PUBLIC_API_URL=http://localhost:8000` in `frontend/.env.local` if the frontend is not picking up the backend URL automatically.
+
+### Useful backend commands
+
+```bash
+uv run alembic downgrade -1                         # Rollback one migration
+uv run alembic revision --autogenerate -m "msg"     # Generate a new migration
+uv run pytest tests                                 # Run tests
+uv run ruff check .                                 # Lint
+uv run ruff format .                                # Format
+```
+
+---
+
 ## Demo Logins
 
 | Role | Email | Password |

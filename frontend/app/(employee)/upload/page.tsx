@@ -47,21 +47,21 @@ export default function UploadPage() {
 
   if (result) {
     return (
-      <div className="px-8 py-8 max-w-xl mx-auto">
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
+      <div className="px-4 sm:px-8 py-8 max-w-xl mx-auto">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
           <CheckCircle className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-emerald-900">Resume submitted!</h2>
+          <h2 className="text-lg font-bold text-emerald-900">Resume submitted!</h2>
           <p className="text-sm text-emerald-700 mt-2 leading-relaxed">
             Your resume is being processed by AI. An HR team member will review and approve it shortly.
           </p>
-          <div className="mt-4 rounded-lg bg-white border border-emerald-200 px-4 py-3 text-left text-sm space-y-1">
+          <div className="mt-4 rounded-lg bg-white border border-emerald-200 px-4 py-3 text-left text-sm space-y-1 shadow-sm">
             <div className="flex justify-between">
               <span className="text-[var(--color-muted-foreground)]">Upload ID</span>
               <span className="font-mono text-xs">{result.upload_id.slice(0, 8)}…</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--color-muted-foreground)]">Status</span>
-              <span className="text-amber-600 font-medium">Pending review</span>
+              <span className="text-amber-600 font-semibold">Pending review</span>
             </div>
           </div>
           <p className="mt-4 text-xs text-emerald-600 flex items-center justify-center gap-1">
@@ -70,7 +70,7 @@ export default function UploadPage() {
           </p>
           <button
             onClick={reset}
-            className="mt-6 text-sm text-emerald-700 hover:underline"
+            className="mt-6 text-sm text-emerald-700 hover:underline cursor-pointer"
           >
             Upload another resume
           </button>
@@ -80,9 +80,10 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="px-8 py-8 max-w-xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Upload Resume</h1>
+    <div className="px-4 sm:px-8 py-8 max-w-xl mx-auto animate-fade-up">
+      <div className="mb-8 pb-6 border-b border-[var(--color-border)]">
+        <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-3" />
+        <h1 className="text-2xl font-bold">Upload Resume</h1>
         <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
           Our AI will extract your skills, experience, and projects automatically.
         </p>
@@ -94,9 +95,9 @@ export default function UploadPage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors cursor-pointer ${
               tab === t
-                ? "bg-white text-[var(--color-foreground)] shadow-sm"
+                ? "bg-[var(--color-card)] text-[var(--color-foreground)] shadow-sm"
                 : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
             }`}
           >
@@ -112,10 +113,10 @@ export default function UploadPage() {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
+            className={`group cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
               dragOver
-                ? "border-[var(--color-primary)] bg-blue-50"
-                : "border-[var(--color-border)] bg-white hover:border-[var(--color-primary)] hover:bg-blue-50/50"
+                ? "border-[var(--color-primary)] bg-indigo-50 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/20"
+                : "border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 hover:shadow-md"
             }`}
           >
             <input
@@ -130,15 +131,17 @@ export default function UploadPage() {
                 <div className="flex justify-center">
                   <Sparkles className="h-10 w-10 text-[var(--color-primary)] animate-pulse" />
                 </div>
-                <p className="text-sm font-medium">AI is extracting skills…</p>
+                <p className="text-sm font-semibold">AI is extracting skills…</p>
                 <p className="text-xs text-[var(--color-muted-foreground)]">This may take 15–30 seconds</p>
               </div>
             ) : (
               <div className="space-y-2">
                 <div className="flex justify-center">
-                  <Upload className="h-10 w-10 text-[var(--color-muted-foreground)]" />
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-indigo-900/30 dark:to-blue-900/20 mb-3 group-hover:scale-110 transition-transform duration-200">
+                    <Upload className="h-8 w-8 text-indigo-500" />
+                  </div>
                 </div>
-                <p className="text-sm font-medium">Drop your PDF here or click to browse</p>
+                <p className="text-sm font-semibold mt-2">Drop your PDF here or click to browse</p>
                 <p className="text-xs text-[var(--color-muted-foreground)]">PDF files only · Max 10 MB</p>
               </div>
             )}
@@ -147,7 +150,7 @@ export default function UploadPage() {
       ) : (
         <form onSubmit={handleTextSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1.5">
+            <label className="block text-sm font-semibold mb-1.5">
               Paste resume text
             </label>
             <textarea
@@ -155,13 +158,13 @@ export default function UploadPage() {
               onChange={(e) => setText(e.target.value)}
               placeholder="Paste your resume, LinkedIn summary, or any structured work history here…"
               rows={12}
-              className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition"
+              className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition shadow-sm"
             />
           </div>
           <button
             type="submit"
             disabled={isPending || !text.trim()}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 transition"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 disabled:opacity-60 transition cursor-pointer"
           >
             {isPending ? (
               <>
@@ -186,8 +189,8 @@ export default function UploadPage() {
       )}
 
       {/* What happens next */}
-      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] p-4 space-y-2">
-        <p className="text-xs font-medium text-[var(--color-foreground)]">What happens after upload?</p>
+      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 space-y-2 shadow-sm">
+        <p className="text-xs font-semibold text-[var(--color-foreground)]">What happens after upload?</p>
         {[
           "Claude AI extracts skills, projects, and certifications",
           "AI infers additional skills from your project descriptions",
@@ -195,7 +198,7 @@ export default function UploadPage() {
           "Your profile becomes searchable for project assignments",
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-2 text-xs text-[var(--color-muted-foreground)]">
-            <span className="shrink-0 h-4 w-4 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-medium" style={{ fontSize: "9px" }}>
+            <span className="shrink-0 h-4 w-4 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-semibold" style={{ fontSize: "9px" }}>
               {i + 1}
             </span>
             {step}

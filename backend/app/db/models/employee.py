@@ -1,4 +1,5 @@
 """Employee model — the central entity. One employee may map to one User account."""
+
 from __future__ import annotations
 
 from datetime import date, datetime

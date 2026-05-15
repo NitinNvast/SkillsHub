@@ -1,4 +1,5 @@
 """Employee embedding — one 1024-dim vector per employee for semantic search."""
+
 from __future__ import annotations
 
 from datetime import datetime

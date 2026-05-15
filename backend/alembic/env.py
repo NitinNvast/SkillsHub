@@ -4,6 +4,7 @@ Run migrations from the backend dir:
     uv run alembic revision --autogenerate -m "msg"
     uv run alembic upgrade head
 """
+
 import asyncio
 from logging.config import fileConfig
 
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import settings
 from app.db.base import Base
+
 # Import all models so Base.metadata is populated for autogenerate
 from app.db import models  # noqa: F401
 

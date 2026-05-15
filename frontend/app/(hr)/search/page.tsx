@@ -30,17 +30,18 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="px-8 py-8 max-w-4xl mx-auto">
+    <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto animate-fade-up">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Talent Search</h1>
+      <div className="mb-8 pb-6 border-b border-[var(--color-border)]">
+        <div className="w-8 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-3" />
+        <h1 className="text-2xl font-bold">Talent Search</h1>
         <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
           Ask in plain English — get ranked candidates with AI reasoning.
         </p>
       </div>
 
       {/* Search box */}
-      <div className="relative rounded-xl border-2 border-[var(--color-primary)] bg-white shadow-sm focus-within:shadow-md transition-shadow">
+      <div className="glass relative rounded-xl border-2 border-[var(--color-primary)] bg-[var(--color-card)] shadow-lg shadow-indigo-500/10 focus-within:shadow-md focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1 transition-all">
         <textarea
           ref={inputRef}
           value={query}
@@ -54,7 +55,7 @@ export default function SearchPage() {
           {query && (
             <button
               onClick={() => { setQuery(""); reset(); inputRef.current?.focus(); }}
-              className="rounded-lg p-1.5 text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition"
+              className="rounded-lg p-1.5 text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -62,7 +63,7 @@ export default function SearchPage() {
           <button
             onClick={() => handleSearch(query)}
             disabled={isPending || !query.trim()}
-            className="flex items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 hover:opacity-90 transition"
+            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 hover:from-indigo-600 hover:to-indigo-700 transition cursor-pointer"
           >
             {isPending ? (
               <span className="flex items-center gap-1.5">
@@ -85,7 +86,7 @@ export default function SearchPage() {
               <button
                 key={q}
                 onClick={() => { setQuery(q); handleSearch(q); }}
-                className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] transition text-left"
+                className="rounded-full border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] transition text-left cursor-pointer"
               >
                 {q.length > 60 ? q.slice(0, 57) + "…" : q}
               </button>
@@ -96,11 +97,17 @@ export default function SearchPage() {
 
       {/* Loading state */}
       {isPending && (
-        <div className="mt-10 text-center space-y-3">
-          <div className="flex justify-center">
-            <Sparkles className="h-8 w-8 text-[var(--color-primary)] animate-pulse" />
+        <div className="mt-10 space-y-4">
+          <div className="flex flex-col items-center gap-3 py-6">
+            <div className="relative">
+              <div className="h-12 w-12 rounded-full border-4 border-indigo-100 dark:border-indigo-900" />
+              <div className="absolute inset-0 h-12 w-12 rounded-full border-4 border-transparent border-t-indigo-500 animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-[var(--color-muted-foreground)]">Parsing query → searching → ranking with AI…</p>
           </div>
-          <p className="text-sm text-[var(--color-muted-foreground)]">Parsing query → searching → ranking with AI…</p>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton h-36 rounded-xl" style={{ animationDelay: `${i * 100}ms` }} />
+          ))}
         </div>
       )}
 
@@ -115,10 +122,10 @@ export default function SearchPage() {
       {data && !isPending && (
         <div className="mt-8 space-y-6">
           {/* Parsed query display */}
-          <div className="rounded-xl border border-[var(--color-border)] bg-white p-4">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-[var(--color-primary)]" />
-              <span className="text-xs font-medium text-[var(--color-primary)]">AI Query Understanding</span>
+              <span className="text-xs font-semibold text-[var(--color-primary)]">AI Query Understanding</span>
             </div>
             <p className="text-sm text-[var(--color-foreground)]">{data.parsed_query.semantic_text}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -154,7 +161,7 @@ export default function SearchPage() {
               <p className="text-xs text-[var(--color-muted-foreground)] mt-1">Try broadening your query or uploading more resumes.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 stagger-children">
               {data.results.map((r, i) => (
                 <ResultCard key={r.employee_id} result={r} rank={i + 1} />
               ))}

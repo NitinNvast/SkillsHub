@@ -1,4 +1,5 @@
 """Employee + project + certification I/O schemas."""
+
 from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
@@ -31,6 +32,7 @@ class CertificationOut(BaseModel):
 
 class EmployeeListItem(BaseModel):
     """Lightweight directory row."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -40,11 +42,12 @@ class EmployeeListItem(BaseModel):
     location: str | None = None
     total_years_exp: Decimal | None = None
     availability: str
-    top_skills: list[str] = []   # populated by service layer (5 names)
+    top_skills: list[str] = []  # populated by service layer (5 names)
 
 
 class EmployeeDetail(BaseModel):
     """Full profile view."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -67,6 +70,7 @@ class EmployeeDetail(BaseModel):
 
 class EmployeeUpdate(BaseModel):
     """Partial update — HR for anyone, employee for their own profile."""
+
     name: str | None = None
     title: str | None = None
     location: str | None = None

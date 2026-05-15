@@ -11,6 +11,7 @@ Stage 2 — Claude Haiku (fast, cheap):
 Both stages skip skills already in the extracted set.
 Results are tagged source='inferred' with confidence scores and reasoning.
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,60 +28,52 @@ log = logging.getLogger(__name__)
 
 _RULES: list[tuple[str, str, float, str, float]] = [
     # (trigger_lower, inferred_name, confidence, proficiency_rule, years_fraction)
-
     # JavaScript ecosystem
-    ("next.js",         "React",       0.97, "same",      1.0),
-    ("next.js",         "JavaScript",  0.90, "same",      1.0),
-    ("next.js",         "TypeScript",  0.72, "one_below",  0.7),
-    ("react native",    "React",       0.95, "same",      1.0),
-    ("react native",    "JavaScript",  0.90, "same",      1.0),
-    ("react native",    "Mobile Development", 0.88, "same", 1.0),
-    ("react",           "JavaScript",  0.88, "same",      1.0),
-    ("vue.js",          "JavaScript",  0.92, "same",      1.0),
-    ("angular",         "TypeScript",  0.92, "same",      1.0),
-    ("angular",         "JavaScript",  0.85, "same",      1.0),
-    ("svelte",          "JavaScript",  0.90, "same",      1.0),
-    ("typescript",      "JavaScript",  0.92, "same",      1.0),
-    ("nestjs",          "Node.js",     0.95, "same",      1.0),
-    ("nestjs",          "TypeScript",  0.88, "same",      1.0),
-    ("express.js",      "Node.js",     0.95, "same",      1.0),
-    ("express.js",      "JavaScript",  0.90, "same",      1.0),
-    ("node.js",         "JavaScript",  0.92, "same",      1.0),
-
+    ("next.js", "React", 0.97, "same", 1.0),
+    ("next.js", "JavaScript", 0.90, "same", 1.0),
+    ("next.js", "TypeScript", 0.72, "one_below", 0.7),
+    ("react native", "React", 0.95, "same", 1.0),
+    ("react native", "JavaScript", 0.90, "same", 1.0),
+    ("react native", "Mobile Development", 0.88, "same", 1.0),
+    ("react", "JavaScript", 0.88, "same", 1.0),
+    ("vue.js", "JavaScript", 0.92, "same", 1.0),
+    ("angular", "TypeScript", 0.92, "same", 1.0),
+    ("angular", "JavaScript", 0.85, "same", 1.0),
+    ("svelte", "JavaScript", 0.90, "same", 1.0),
+    ("typescript", "JavaScript", 0.92, "same", 1.0),
+    ("nestjs", "Node.js", 0.95, "same", 1.0),
+    ("nestjs", "TypeScript", 0.88, "same", 1.0),
+    ("express.js", "Node.js", 0.95, "same", 1.0),
+    ("express.js", "JavaScript", 0.90, "same", 1.0),
+    ("node.js", "JavaScript", 0.92, "same", 1.0),
     # Python ecosystem
-    ("django",          "Python",      0.97, "same",      1.0),
-    ("flask",           "Python",      0.97, "same",      1.0),
-    ("fastapi",         "Python",      0.97, "same",      1.0),
-    ("tensorflow",      "Python",      0.90, "same",      1.0),
-    ("tensorflow",      "Machine Learning", 0.85, "same", 1.0),
-    ("pytorch",         "Python",      0.90, "same",      1.0),
-    ("pytorch",         "Machine Learning", 0.85, "same", 1.0),
-    ("langchain",       "Python",      0.85, "same",      1.0),
-    ("langchain",       "LLM Engineering", 0.82, "same",  1.0),
-
+    ("django", "Python", 0.97, "same", 1.0),
+    ("flask", "Python", 0.97, "same", 1.0),
+    ("fastapi", "Python", 0.97, "same", 1.0),
+    ("tensorflow", "Python", 0.90, "same", 1.0),
+    ("tensorflow", "Machine Learning", 0.85, "same", 1.0),
+    ("pytorch", "Python", 0.90, "same", 1.0),
+    ("pytorch", "Machine Learning", 0.85, "same", 1.0),
+    ("langchain", "Python", 0.85, "same", 1.0),
+    ("langchain", "LLM Engineering", 0.82, "same", 1.0),
     # JVM
-    ("spring boot",     "Java",        0.97, "same",      1.0),
-    ("spring boot",     "Backend Development", 0.82, "same", 1.0),
-
+    ("spring boot", "Java", 0.97, "same", 1.0),
+    ("spring boot", "Backend Development", 0.82, "same", 1.0),
     # Ruby
-    ("ruby on rails",   "Ruby",        0.97, "same",      1.0),
-
+    ("ruby on rails", "Ruby", 0.97, "same", 1.0),
     # AWS sub-services → AWS
-    ("aws lambda",      "AWS",         0.92, "same",      1.0),
-    ("aws s3",          "AWS",         0.92, "same",      1.0),
-    ("aws ec2",         "AWS",         0.92, "same",      1.0),
-
+    ("aws lambda", "AWS", 0.92, "same", 1.0),
+    ("aws s3", "AWS", 0.92, "same", 1.0),
+    ("aws ec2", "AWS", 0.92, "same", 1.0),
     # Databases → SQL
-    ("postgresql",      "SQL",         0.90, "same",      0.9),
-    ("mysql",           "SQL",         0.90, "same",      0.9),
-
+    ("postgresql", "SQL", 0.90, "same", 0.9),
+    ("mysql", "SQL", 0.90, "same", 0.9),
     # Container orchestration
-    ("kubernetes",      "Docker",      0.85, "one_below",  0.8),
-
+    ("kubernetes", "Docker", 0.85, "one_below", 0.8),
     # Socket.IO → domain
-    ("socket.io",       "Real-time Systems", 0.88, "same", 1.0),
-    ("socket.io",       "WebSocket",   0.90, "same",      1.0),
-    ("websocket",       "Real-time Systems", 0.85, "same", 1.0),
+    ("socket.io", "Real-time Systems", 0.88, "same", 1.0),
+    ("socket.io", "WebSocket", 0.90, "same", 1.0),
+    ("websocket", "Real-time Systems", 0.85, "same", 1.0),
 ]
 
 
@@ -101,7 +94,7 @@ def _deterministic_inferences(extracted: list[ExtractedSkill]) -> list[dict]:
 
     for skill in extracted:
         trigger = skill.name.lower()
-        for (trig, inferred_name, confidence, prof_rule, years_frac) in _RULES:
+        for trig, inferred_name, confidence, prof_rule, years_frac in _RULES:
             if trig != trigger:
                 continue
             if inferred_name.lower() in extracted_lower:
@@ -113,19 +106,22 @@ def _deterministic_inferences(extracted: list[ExtractedSkill]) -> list[dict]:
             proficiency = _apply_proficiency_rule(skill.proficiency, prof_rule)
             inferred_names_lower.add(inferred_name.lower())
 
-            results.append({
-                "name": inferred_name,
-                "proficiency": proficiency,
-                "years": years,
-                "confidence": confidence,
-                "reasoning": f"Implied by {skill.name} ({skill.proficiency})",
-                "triggered_by": skill.name,
-            })
+            results.append(
+                {
+                    "name": inferred_name,
+                    "proficiency": proficiency,
+                    "years": years,
+                    "confidence": confidence,
+                    "reasoning": f"Implied by {skill.name} ({skill.proficiency})",
+                    "triggered_by": skill.name,
+                }
+            )
 
     return results
 
 
 # ─── Stage 2: Claude Haiku ────────────────────────────────────────────────────
+
 
 async def _haiku_inferences(
     extracted: list[ExtractedSkill],
@@ -183,6 +179,7 @@ async def _haiku_inferences(
 
 
 # ─── Public entry point ───────────────────────────────────────────────────────
+
 
 async def run_inference(extracted_skills: list[ExtractedSkill]) -> list[dict]:
     """

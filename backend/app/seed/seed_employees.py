@@ -6,6 +6,7 @@ Run after seed_demo.py (skills catalog must exist):
 Idempotent: skips employees whose email already exists.
 Designed so the four DEMO_QUERIES on the search page all return great results.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -19,7 +20,12 @@ from app.db.models import Employee, EmployeeSkill
 from app.db.repos.embeddings import render_profile_summary, upsert_employee_embedding
 from app.db.repos.employees import upsert_from_extraction
 from app.db.session import SessionLocal
-from app.schemas.extraction import ExtractedCertification, ExtractedProject, ExtractedSkill, StructuredProfile
+from app.schemas.extraction import (
+    ExtractedCertification,
+    ExtractedProject,
+    ExtractedSkill,
+    StructuredProfile,
+)
 
 # ─── 12 demo profiles ─────────────────────────────────────────────────────────
 # Designed to match the four search demo queries:
@@ -47,14 +53,62 @@ DEMO_PROFILES = [
                 "Deeply experienced in TypeScript, state management, and performance optimization."
             ),
             skills=[
-                ExtractedSkill(name="React", proficiency="expert", years=6.0, evidence="Led 3 React projects", confidence=0.99),
-                ExtractedSkill(name="WebSocket", proficiency="expert", years=3.0, evidence="Built trading dashboard with WS feeds", confidence=0.98),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=5.0, evidence="All projects in TS", confidence=0.99),
-                ExtractedSkill(name="Next.js", proficiency="expert", years=3.0, evidence="Next.js App Router, SSR", confidence=0.96),
-                ExtractedSkill(name="Redux", proficiency="intermediate", years=4.0, evidence="Redux + RTK", confidence=0.93),
-                ExtractedSkill(name="CSS", proficiency="expert", years=7.0, evidence="Tailwind, CSS Modules", confidence=0.95),
-                ExtractedSkill(name="Node.js", proficiency="intermediate", years=2.0, evidence="BFF APIs", confidence=0.85),
-                ExtractedSkill(name="Jest", proficiency="intermediate", years=4.0, evidence="Unit + integration tests", confidence=0.88),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Led 3 React projects",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="WebSocket",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="Built trading dashboard with WS feeds",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="All projects in TS",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Next.js",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="Next.js App Router, SSR",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Redux",
+                    proficiency="intermediate",
+                    years=4.0,
+                    evidence="Redux + RTK",
+                    confidence=0.93,
+                ),
+                ExtractedSkill(
+                    name="CSS",
+                    proficiency="expert",
+                    years=7.0,
+                    evidence="Tailwind, CSS Modules",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Node.js",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="BFF APIs",
+                    confidence=0.85,
+                ),
+                ExtractedSkill(
+                    name="Jest",
+                    proficiency="intermediate",
+                    years=4.0,
+                    evidence="Unit + integration tests",
+                    confidence=0.88,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -65,7 +119,8 @@ DEMO_PROFILES = [
                         "Architected a WebSocket connection manager in React that consumed 200+ price feeds simultaneously. "
                         "Reduced render lag from 180ms to under 40ms using virtualization and memoization."
                     ),
-                    start_date="2022-06", end_date="2024-02",
+                    start_date="2022-06",
+                    end_date="2024-02",
                     technologies=["React", "WebSocket", "TypeScript", "Redux", "Recharts"],
                 ),
                 ExtractedProject(
@@ -75,16 +130,18 @@ DEMO_PROFILES = [
                         "Rebuilt the frontend of a high-traffic e-commerce platform in Next.js. "
                         "Improved Core Web Vitals scores from 52 to 91. Led a team of 3 frontend engineers."
                     ),
-                    start_date="2021-01", end_date="2022-05",
+                    start_date="2021-01",
+                    end_date="2022-05",
                     technologies=["Next.js", "TypeScript", "Tailwind CSS", "React Query"],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="AWS Certified Developer – Associate", issuer="Amazon", year=2023),
+                ExtractedCertification(
+                    name="AWS Certified Developer – Associate", issuer="Amazon", year=2023
+                ),
             ],
         ),
     },
-
     # ── 2. Java backend + payment gateways in Pune (query 2 top hit) ─────────
     {
         "email": "rahul.mehta@demo.com",
@@ -103,14 +160,62 @@ DEMO_PROFILES = [
                 "Strong in distributed systems, REST API design, and high-throughput transaction processing."
             ),
             skills=[
-                ExtractedSkill(name="Java", proficiency="expert", years=5.0, evidence="5 yrs Java backend dev", confidence=0.99),
-                ExtractedSkill(name="Spring Boot", proficiency="expert", years=4.0, evidence="All backend projects in Spring", confidence=0.98),
-                ExtractedSkill(name="Payment Gateways", proficiency="expert", years=4.0, evidence="Razorpay, PayU, NEFT/IMPS", confidence=0.97),
-                ExtractedSkill(name="PostgreSQL", proficiency="expert", years=4.0, evidence="Schema design + query optimization", confidence=0.95),
-                ExtractedSkill(name="Redis", proficiency="intermediate", years=3.0, evidence="Caching + rate limiting", confidence=0.90),
-                ExtractedSkill(name="Docker", proficiency="intermediate", years=2.5, evidence="Dockerized all services", confidence=0.88),
-                ExtractedSkill(name="Kafka", proficiency="intermediate", years=2.0, evidence="Order event streaming", confidence=0.85),
-                ExtractedSkill(name="REST API", proficiency="expert", years=5.0, evidence="Designed 15+ APIs", confidence=0.95),
+                ExtractedSkill(
+                    name="Java",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="5 yrs Java backend dev",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Spring Boot",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="All backend projects in Spring",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Payment Gateways",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Razorpay, PayU, NEFT/IMPS",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="PostgreSQL",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Schema design + query optimization",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Redis",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Caching + rate limiting",
+                    confidence=0.90,
+                ),
+                ExtractedSkill(
+                    name="Docker",
+                    proficiency="intermediate",
+                    years=2.5,
+                    evidence="Dockerized all services",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="Kafka",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="Order event streaming",
+                    confidence=0.85,
+                ),
+                ExtractedSkill(
+                    name="REST API",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Designed 15+ APIs",
+                    confidence=0.95,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -121,8 +226,16 @@ DEMO_PROFILES = [
                         "Processed ₹50Cr+ in monthly transactions with 99.98% uptime. "
                         "Implemented idempotent payment APIs, refund workflows, and webhook retry logic."
                     ),
-                    start_date="2022-03", end_date="2024-03",
-                    technologies=["Java", "Spring Boot", "PostgreSQL", "Redis", "Kafka", "Razorpay SDK"],
+                    start_date="2022-03",
+                    end_date="2024-03",
+                    technologies=[
+                        "Java",
+                        "Spring Boot",
+                        "PostgreSQL",
+                        "Redis",
+                        "Kafka",
+                        "Razorpay SDK",
+                    ],
                 ),
                 ExtractedProject(
                     name="BankBridge — Core Banking API Wrapper",
@@ -131,16 +244,18 @@ DEMO_PROFILES = [
                         "Developed REST API wrappers for ICICI and HDFC corporate banking APIs. "
                         "Built automated reconciliation engine that reduced manual reconciliation time by 80%."
                     ),
-                    start_date="2020-06", end_date="2022-02",
+                    start_date="2020-06",
+                    end_date="2022-02",
                     technologies=["Java", "Spring Boot", "PostgreSQL", "JUnit"],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="Oracle Certified Professional Java SE 11", issuer="Oracle", year=2021),
+                ExtractedCertification(
+                    name="Oracle Certified Professional Java SE 11", issuer="Oracle", year=2021
+                ),
             ],
         ),
     },
-
     # ── 3. Senior frontend with stale availability (query 3 hit) ─────────────
     {
         "email": "ananya.krishnan@demo.com",
@@ -159,14 +274,62 @@ DEMO_PROFILES = [
                 "Currently available and looking for a challenging product frontend role."
             ),
             skills=[
-                ExtractedSkill(name="React", proficiency="expert", years=6.0, evidence="Primary framework for 5 years", confidence=0.99),
-                ExtractedSkill(name="Vue.js", proficiency="expert", years=3.0, evidence="Led Vue migration at previous job", confidence=0.95),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=5.0, evidence="All recent projects in TS", confidence=0.98),
-                ExtractedSkill(name="CSS", proficiency="expert", years=8.0, evidence="Design systems, animations", confidence=0.97),
-                ExtractedSkill(name="Storybook", proficiency="expert", years=4.0, evidence="Built and maintained component library", confidence=0.93),
-                ExtractedSkill(name="GraphQL", proficiency="intermediate", years=3.0, evidence="Apollo Client experience", confidence=0.88),
-                ExtractedSkill(name="Jest", proficiency="expert", years=5.0, evidence="TDD practitioner", confidence=0.92),
-                ExtractedSkill(name="Webpack", proficiency="intermediate", years=4.0, evidence="Custom build configurations", confidence=0.85),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Primary framework for 5 years",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Vue.js",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="Led Vue migration at previous job",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="All recent projects in TS",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="CSS",
+                    proficiency="expert",
+                    years=8.0,
+                    evidence="Design systems, animations",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="Storybook",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Built and maintained component library",
+                    confidence=0.93,
+                ),
+                ExtractedSkill(
+                    name="GraphQL",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Apollo Client experience",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="Jest",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="TDD practitioner",
+                    confidence=0.92,
+                ),
+                ExtractedSkill(
+                    name="Webpack",
+                    proficiency="intermediate",
+                    years=4.0,
+                    evidence="Custom build configurations",
+                    confidence=0.85,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -177,14 +340,14 @@ DEMO_PROFILES = [
                         "Established component API standards, accessibility guidelines, and Storybook-based documentation. "
                         "Reduced per-team UI development time by 35%."
                     ),
-                    start_date="2021-01", end_date="2023-10",
+                    start_date="2021-01",
+                    end_date="2023-10",
                     technologies=["React", "TypeScript", "Storybook", "CSS Modules", "Jest"],
                 ),
             ],
             certifications=[],
         ),
     },
-
     # ── 4. Full-stack + AWS + microservices (query 4 top hit) ────────────────
     {
         "email": "vikram.nair@demo.com",
@@ -203,14 +366,62 @@ DEMO_PROFILES = [
                 "Comfortable across the entire stack — React frontends to Kubernetes-orchestrated backends."
             ),
             skills=[
-                ExtractedSkill(name="AWS", proficiency="expert", years=4.0, evidence="EC2, Lambda, SQS, ECS, RDS", confidence=0.97),
-                ExtractedSkill(name="Microservices", proficiency="expert", years=3.0, evidence="Led migration to 14 microservices", confidence=0.96),
-                ExtractedSkill(name="React", proficiency="expert", years=4.0, evidence="React + hooks, Zustand", confidence=0.95),
-                ExtractedSkill(name="Node.js", proficiency="expert", years=5.0, evidence="Express + NestJS APIs", confidence=0.96),
-                ExtractedSkill(name="Docker", proficiency="expert", years=3.5, evidence="All services containerized", confidence=0.95),
-                ExtractedSkill(name="Kubernetes", proficiency="intermediate", years=2.0, evidence="EKS deployments", confidence=0.87),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=3.5, evidence="Type-first on FE and BE", confidence=0.94),
-                ExtractedSkill(name="PostgreSQL", proficiency="intermediate", years=3.0, evidence="Schema design + RDS", confidence=0.88),
+                ExtractedSkill(
+                    name="AWS",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="EC2, Lambda, SQS, ECS, RDS",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="Microservices",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="Led migration to 14 microservices",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="React + hooks, Zustand",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Node.js",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Express + NestJS APIs",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Docker",
+                    proficiency="expert",
+                    years=3.5,
+                    evidence="All services containerized",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Kubernetes",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="EKS deployments",
+                    confidence=0.87,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=3.5,
+                    evidence="Type-first on FE and BE",
+                    confidence=0.94,
+                ),
+                ExtractedSkill(
+                    name="PostgreSQL",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Schema design + RDS",
+                    confidence=0.88,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -221,16 +432,25 @@ DEMO_PROFILES = [
                         "Established service mesh, centralized logging with CloudWatch, and CI/CD pipelines in GitHub Actions. "
                         "Reduced deployment frequency from monthly to daily and cut cloud costs by 40%."
                     ),
-                    start_date="2022-06", end_date="2024-01",
-                    technologies=["Node.js", "AWS ECS", "Docker", "PostgreSQL", "React", "Kubernetes"],
+                    start_date="2022-06",
+                    end_date="2024-01",
+                    technologies=[
+                        "Node.js",
+                        "AWS ECS",
+                        "Docker",
+                        "PostgreSQL",
+                        "React",
+                        "Kubernetes",
+                    ],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="AWS Solutions Architect – Associate", issuer="Amazon", year=2022),
+                ExtractedCertification(
+                    name="AWS Solutions Architect – Associate", issuer="Amazon", year=2022
+                ),
             ],
         ),
     },
-
     # ── 5. Cloud/DevOps specialist, allocated ─────────────────────────────────
     {
         "email": "deepa.iyer@demo.com",
@@ -249,13 +469,55 @@ DEMO_PROFILES = [
                 "Strong Terraform, Helm, and CI/CD pipeline expertise."
             ),
             skills=[
-                ExtractedSkill(name="AWS", proficiency="expert", years=5.0, evidence="Production AWS at scale", confidence=0.99),
-                ExtractedSkill(name="GCP", proficiency="expert", years=3.0, evidence="GKE, Cloud Run, BigQuery", confidence=0.95),
-                ExtractedSkill(name="Kubernetes", proficiency="expert", years=4.0, evidence="Self-managed + EKS + GKE", confidence=0.97),
-                ExtractedSkill(name="Terraform", proficiency="expert", years=4.0, evidence="Full IaC for 3 environments", confidence=0.96),
-                ExtractedSkill(name="Docker", proficiency="expert", years=5.0, evidence="All prod workloads containerized", confidence=0.98),
-                ExtractedSkill(name="Python", proficiency="intermediate", years=3.0, evidence="Automation scripts and lambda functions", confidence=0.88),
-                ExtractedSkill(name="Helm", proficiency="expert", years=3.0, evidence="50+ Helm charts authored", confidence=0.93),
+                ExtractedSkill(
+                    name="AWS",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Production AWS at scale",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="GCP",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="GKE, Cloud Run, BigQuery",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Kubernetes",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Self-managed + EKS + GKE",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="Terraform",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Full IaC for 3 environments",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Docker",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="All prod workloads containerized",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Python",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Automation scripts and lambda functions",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="Helm",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="50+ Helm charts authored",
+                    confidence=0.93,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -266,17 +528,21 @@ DEMO_PROFILES = [
                         "Standardized observability stack (Prometheus + Grafana + Loki) across all clusters. "
                         "Onboarded 8 engineering teams to the platform within 3 months."
                     ),
-                    start_date="2022-01", end_date="2023-12",
+                    start_date="2022-01",
+                    end_date="2023-12",
                     technologies=["Kubernetes", "Terraform", "GCP", "AWS", "Helm", "Prometheus"],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="CKA — Certified Kubernetes Administrator", issuer="CNCF", year=2022),
-                ExtractedCertification(name="GCP Professional Cloud Architect", issuer="Google", year=2023),
+                ExtractedCertification(
+                    name="CKA — Certified Kubernetes Administrator", issuer="CNCF", year=2022
+                ),
+                ExtractedCertification(
+                    name="GCP Professional Cloud Architect", issuer="Google", year=2023
+                ),
             ],
         ),
     },
-
     # ── 6. Senior Java + microservices, partial (query 2 + 4 secondary) ───────
     {
         "email": "arjun.patel@demo.com",
@@ -295,13 +561,55 @@ DEMO_PROFILES = [
                 "Partial bandwidth available — strongest in backend architecture and payment systems."
             ),
             skills=[
-                ExtractedSkill(name="Java", proficiency="expert", years=8.0, evidence="Core language since 2016", confidence=0.99),
-                ExtractedSkill(name="Spring Boot", proficiency="expert", years=6.0, evidence="All production services in Spring", confidence=0.98),
-                ExtractedSkill(name="Kafka", proficiency="expert", years=4.0, evidence="Designed event streaming architecture", confidence=0.96),
-                ExtractedSkill(name="Microservices", proficiency="expert", years=5.0, evidence="Owns 6 production microservices", confidence=0.97),
-                ExtractedSkill(name="Payment Gateways", proficiency="intermediate", years=3.0, evidence="Stripe + PayU integrations", confidence=0.88),
-                ExtractedSkill(name="Redis", proficiency="expert", years=4.0, evidence="Distributed caching + pub-sub", confidence=0.94),
-                ExtractedSkill(name="PostgreSQL", proficiency="expert", years=6.0, evidence="Query tuning, partitioning", confidence=0.96),
+                ExtractedSkill(
+                    name="Java",
+                    proficiency="expert",
+                    years=8.0,
+                    evidence="Core language since 2016",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Spring Boot",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="All production services in Spring",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Kafka",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Designed event streaming architecture",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Microservices",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Owns 6 production microservices",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="Payment Gateways",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Stripe + PayU integrations",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="Redis",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Distributed caching + pub-sub",
+                    confidence=0.94,
+                ),
+                ExtractedSkill(
+                    name="PostgreSQL",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Query tuning, partitioning",
+                    confidence=0.96,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -312,16 +620,18 @@ DEMO_PROFILES = [
                         "Processes 2M+ order events per day with guaranteed exactly-once delivery. "
                         "Reduced p99 order processing time from 800ms to 120ms."
                     ),
-                    start_date="2021-03", end_date="2024-01",
+                    start_date="2021-03",
+                    end_date="2024-01",
                     technologies=["Java", "Spring Boot", "Kafka", "PostgreSQL", "Redis", "Docker"],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="Spring Professional Certification", issuer="VMware", year=2020),
+                ExtractedCertification(
+                    name="Spring Professional Certification", issuer="VMware", year=2020
+                ),
             ],
         ),
     },
-
     # ── 7. React + WebSocket (query 1 secondary hit) ──────────────────────────
     {
         "email": "sneha.gupta@demo.com",
@@ -340,12 +650,48 @@ DEMO_PROFILES = [
                 "Strong in UI component architecture, TypeScript, and accessible UI development."
             ),
             skills=[
-                ExtractedSkill(name="React", proficiency="intermediate", years=3.5, evidence="React primary framework", confidence=0.95),
-                ExtractedSkill(name="WebSocket", proficiency="intermediate", years=2.0, evidence="Real-time chat + live updates", confidence=0.90),
-                ExtractedSkill(name="TypeScript", proficiency="intermediate", years=2.5, evidence="Typed React components", confidence=0.90),
-                ExtractedSkill(name="Redux", proficiency="intermediate", years=2.0, evidence="Redux Toolkit", confidence=0.85),
-                ExtractedSkill(name="CSS", proficiency="intermediate", years=4.0, evidence="Tailwind CSS", confidence=0.88),
-                ExtractedSkill(name="Node.js", proficiency="novice", years=1.0, evidence="Simple Express APIs", confidence=0.72),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="intermediate",
+                    years=3.5,
+                    evidence="React primary framework",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="WebSocket",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="Real-time chat + live updates",
+                    confidence=0.90,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="intermediate",
+                    years=2.5,
+                    evidence="Typed React components",
+                    confidence=0.90,
+                ),
+                ExtractedSkill(
+                    name="Redux",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="Redux Toolkit",
+                    confidence=0.85,
+                ),
+                ExtractedSkill(
+                    name="CSS",
+                    proficiency="intermediate",
+                    years=4.0,
+                    evidence="Tailwind CSS",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="Node.js",
+                    proficiency="novice",
+                    years=1.0,
+                    evidence="Simple Express APIs",
+                    confidence=0.72,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -355,14 +701,20 @@ DEMO_PROFILES = [
                         "Built a Google Docs-style collaborative editing tool with real-time cursor presence and live document updates via WebSocket. "
                         "Implemented optimistic UI updates and conflict resolution on the client side."
                     ),
-                    start_date="2022-09", end_date="2024-03",
-                    technologies=["React", "WebSocket", "TypeScript", "Redux Toolkit", "Tailwind CSS"],
+                    start_date="2022-09",
+                    end_date="2024-03",
+                    technologies=[
+                        "React",
+                        "WebSocket",
+                        "TypeScript",
+                        "Redux Toolkit",
+                        "Tailwind CSS",
+                    ],
                 ),
             ],
             certifications=[],
         ),
     },
-
     # ── 8. Full-stack + GCP + microservices (query 4 secondary hit) ───────────
     {
         "email": "karthik.ramesh@demo.com",
@@ -381,14 +733,62 @@ DEMO_PROFILES = [
                 "Enthusiastic about GraphQL, serverless, and developer experience tooling."
             ),
             skills=[
-                ExtractedSkill(name="Node.js", proficiency="expert", years=6.0, evidence="Primary backend language", confidence=0.98),
-                ExtractedSkill(name="React", proficiency="expert", years=5.0, evidence="Component libraries, performance", confidence=0.96),
-                ExtractedSkill(name="GCP", proficiency="expert", years=4.0, evidence="Cloud Run, Firestore, BigQuery, GKE", confidence=0.96),
-                ExtractedSkill(name="Microservices", proficiency="expert", years=4.0, evidence="Designed 12-service fintech platform", confidence=0.95),
-                ExtractedSkill(name="GraphQL", proficiency="expert", years=3.5, evidence="Apollo Server + Client", confidence=0.93),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=4.0, evidence="Strict TypeScript everywhere", confidence=0.95),
-                ExtractedSkill(name="Docker", proficiency="expert", years=4.0, evidence="Containerized all services", confidence=0.94),
-                ExtractedSkill(name="PostgreSQL", proficiency="intermediate", years=3.0, evidence="Cloud SQL schemas", confidence=0.87),
+                ExtractedSkill(
+                    name="Node.js",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Primary backend language",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Component libraries, performance",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="GCP",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Cloud Run, Firestore, BigQuery, GKE",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Microservices",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Designed 12-service fintech platform",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="GraphQL",
+                    proficiency="expert",
+                    years=3.5,
+                    evidence="Apollo Server + Client",
+                    confidence=0.93,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Strict TypeScript everywhere",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Docker",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Containerized all services",
+                    confidence=0.94,
+                ),
+                ExtractedSkill(
+                    name="PostgreSQL",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Cloud SQL schemas",
+                    confidence=0.87,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -399,16 +799,25 @@ DEMO_PROFILES = [
                         "Served 40 enterprise clients processing ₹200Cr in annual loan volume. "
                         "Architected GraphQL federation layer unifying 5 downstream microservice APIs."
                     ),
-                    start_date="2021-01", end_date="2024-02",
-                    technologies=["Node.js", "React", "GCP Cloud Run", "GraphQL", "TypeScript", "PostgreSQL"],
+                    start_date="2021-01",
+                    end_date="2024-02",
+                    technologies=[
+                        "Node.js",
+                        "React",
+                        "GCP Cloud Run",
+                        "GraphQL",
+                        "TypeScript",
+                        "PostgreSQL",
+                    ],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="GCP Associate Cloud Engineer", issuer="Google", year=2022),
+                ExtractedCertification(
+                    name="GCP Associate Cloud Engineer", issuer="Google", year=2022
+                ),
             ],
         ),
     },
-
     # ── 9. Data engineer, allocated ───────────────────────────────────────────
     {
         "email": "meera.banerjee@demo.com",
@@ -427,13 +836,55 @@ DEMO_PROFILES = [
                 "Built data lakehouse architectures processing 5TB+ of daily event data."
             ),
             skills=[
-                ExtractedSkill(name="Python", proficiency="expert", years=6.0, evidence="Primary scripting and pipeline language", confidence=0.99),
-                ExtractedSkill(name="Apache Spark", proficiency="expert", years=4.0, evidence="PySpark ETL jobs in production", confidence=0.96),
-                ExtractedSkill(name="SQL", proficiency="expert", years=6.0, evidence="Complex analytical queries", confidence=0.98),
-                ExtractedSkill(name="Apache Airflow", proficiency="expert", years=3.0, evidence="200+ DAGs managed", confidence=0.94),
-                ExtractedSkill(name="GCP", proficiency="intermediate", years=3.0, evidence="BigQuery, Dataflow, GCS", confidence=0.88),
-                ExtractedSkill(name="AWS", proficiency="intermediate", years=2.0, evidence="S3, Glue, Redshift", confidence=0.82),
-                ExtractedSkill(name="dbt", proficiency="intermediate", years=2.0, evidence="Data transformation layer", confidence=0.86),
+                ExtractedSkill(
+                    name="Python",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Primary scripting and pipeline language",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Apache Spark",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="PySpark ETL jobs in production",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="SQL",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Complex analytical queries",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Apache Airflow",
+                    proficiency="expert",
+                    years=3.0,
+                    evidence="200+ DAGs managed",
+                    confidence=0.94,
+                ),
+                ExtractedSkill(
+                    name="GCP",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="BigQuery, Dataflow, GCS",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="AWS",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="S3, Glue, Redshift",
+                    confidence=0.82,
+                ),
+                ExtractedSkill(
+                    name="dbt",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="Data transformation layer",
+                    confidence=0.86,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -444,16 +895,25 @@ DEMO_PROFILES = [
                         "Replaced 3 legacy ETL tools with Airflow + Spark, cutting pipeline failure rates from 12% to 0.4%. "
                         "Enabled self-serve analytics for 80 business analysts via BigQuery."
                     ),
-                    start_date="2021-06", end_date="2024-04",
-                    technologies=["Python", "Apache Spark", "Airflow", "GCP BigQuery", "dbt", "SQL"],
+                    start_date="2021-06",
+                    end_date="2024-04",
+                    technologies=[
+                        "Python",
+                        "Apache Spark",
+                        "Airflow",
+                        "GCP BigQuery",
+                        "dbt",
+                        "SQL",
+                    ],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="GCP Professional Data Engineer", issuer="Google", year=2022),
+                ExtractedCertification(
+                    name="GCP Professional Data Engineer", issuer="Google", year=2022
+                ),
             ],
         ),
     },
-
     # ── 10. Mobile developer, partial ─────────────────────────────────────────
     {
         "email": "rohan.desai@demo.com",
@@ -472,12 +932,48 @@ DEMO_PROFILES = [
                 "Available for 50% on a new project alongside current maintenance work."
             ),
             skills=[
-                ExtractedSkill(name="React Native", proficiency="expert", years=4.0, evidence="4 production apps shipped", confidence=0.97),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=4.0, evidence="TypeScript-first mobile dev", confidence=0.95),
-                ExtractedSkill(name="iOS", proficiency="intermediate", years=3.0, evidence="Swift, native modules", confidence=0.88),
-                ExtractedSkill(name="React", proficiency="intermediate", years=3.0, evidence="Web companion apps", confidence=0.87),
-                ExtractedSkill(name="Node.js", proficiency="novice", years=1.5, evidence="Mobile BFF APIs", confidence=0.75),
-                ExtractedSkill(name="Redux", proficiency="intermediate", years=3.0, evidence="State management in all apps", confidence=0.88),
+                ExtractedSkill(
+                    name="React Native",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="4 production apps shipped",
+                    confidence=0.97,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="TypeScript-first mobile dev",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="iOS",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Swift, native modules",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Web companion apps",
+                    confidence=0.87,
+                ),
+                ExtractedSkill(
+                    name="Node.js",
+                    proficiency="novice",
+                    years=1.5,
+                    evidence="Mobile BFF APIs",
+                    confidence=0.75,
+                ),
+                ExtractedSkill(
+                    name="Redux",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="State management in all apps",
+                    confidence=0.88,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -488,14 +984,21 @@ DEMO_PROFILES = [
                         "Reached 500K downloads in 6 months with 4.7 App Store rating. "
                         "Integrated Razorpay and Google Pay APIs for seamless payment flows."
                     ),
-                    start_date="2022-01", end_date="2023-11",
-                    technologies=["React Native", "TypeScript", "iOS", "Razorpay", "Redux", "Firebase"],
+                    start_date="2022-01",
+                    end_date="2023-11",
+                    technologies=[
+                        "React Native",
+                        "TypeScript",
+                        "iOS",
+                        "Razorpay",
+                        "Redux",
+                        "Firebase",
+                    ],
                 ),
             ],
             certifications=[],
         ),
     },
-
     # ── 11. Senior frontend, not recently on project (query 3 strong hit) ─────
     {
         "email": "aditi.singh@demo.com",
@@ -514,14 +1017,62 @@ DEMO_PROFILES = [
                 "Free since August 2023 and actively seeking a new challenge."
             ),
             skills=[
-                ExtractedSkill(name="React", proficiency="expert", years=8.0, evidence="8 years React, inc. React 18", confidence=0.99),
-                ExtractedSkill(name="Angular", proficiency="expert", years=4.0, evidence="Led Angular 12 → 16 upgrade", confidence=0.95),
-                ExtractedSkill(name="Vue.js", proficiency="intermediate", years=3.0, evidence="Vue 3 + Composition API", confidence=0.88),
-                ExtractedSkill(name="TypeScript", proficiency="expert", years=6.0, evidence="All major projects in TS", confidence=0.99),
-                ExtractedSkill(name="Webpack", proficiency="expert", years=5.0, evidence="Custom module federation config", confidence=0.93),
-                ExtractedSkill(name="CSS", proficiency="expert", years=9.0, evidence="CSS-in-JS, Tailwind, BEM", confidence=0.98),
-                ExtractedSkill(name="Jest", proficiency="expert", years=6.0, evidence="100% unit test coverage on component libs", confidence=0.94),
-                ExtractedSkill(name="GraphQL", proficiency="intermediate", years=2.5, evidence="Client-side Apollo queries", confidence=0.84),
+                ExtractedSkill(
+                    name="React",
+                    proficiency="expert",
+                    years=8.0,
+                    evidence="8 years React, inc. React 18",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Angular",
+                    proficiency="expert",
+                    years=4.0,
+                    evidence="Led Angular 12 → 16 upgrade",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Vue.js",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Vue 3 + Composition API",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="TypeScript",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="All major projects in TS",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Webpack",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Custom module federation config",
+                    confidence=0.93,
+                ),
+                ExtractedSkill(
+                    name="CSS",
+                    proficiency="expert",
+                    years=9.0,
+                    evidence="CSS-in-JS, Tailwind, BEM",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Jest",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="100% unit test coverage on component libs",
+                    confidence=0.94,
+                ),
+                ExtractedSkill(
+                    name="GraphQL",
+                    proficiency="intermediate",
+                    years=2.5,
+                    evidence="Client-side Apollo queries",
+                    confidence=0.84,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -532,14 +1083,20 @@ DEMO_PROFILES = [
                         "Reduced page load time by 55% through code splitting and lazy loading. "
                         "Standardized design token adoption across 12 React and Angular apps."
                     ),
-                    start_date="2020-03", end_date="2023-07",
-                    technologies=["React", "Angular", "Webpack Module Federation", "TypeScript", "Jest"],
+                    start_date="2020-03",
+                    end_date="2023-07",
+                    technologies=[
+                        "React",
+                        "Angular",
+                        "Webpack Module Federation",
+                        "TypeScript",
+                        "Jest",
+                    ],
                 ),
             ],
             certifications=[],
         ),
     },
-
     # ── 12. Java + payment specialist, Pune (query 2 alternative hit) ─────────
     {
         "email": "sanjay.kumar@demo.com",
@@ -558,14 +1115,62 @@ DEMO_PROFILES = [
                 "Built payment platforms handling ₹100Cr+ monthly volume for enterprise clients."
             ),
             skills=[
-                ExtractedSkill(name="Java", proficiency="expert", years=7.0, evidence="Java since 2017", confidence=0.99),
-                ExtractedSkill(name="Spring Boot", proficiency="expert", years=6.0, evidence="Spring Boot microservices throughout career", confidence=0.98),
-                ExtractedSkill(name="Payment Gateways", proficiency="expert", years=5.0, evidence="Razorpay, Stripe, PayTM, UPI", confidence=0.99),
-                ExtractedSkill(name="PostgreSQL", proficiency="expert", years=5.0, evidence="Ledger and transaction DB design", confidence=0.95),
-                ExtractedSkill(name="Microservices", proficiency="intermediate", years=3.0, evidence="3-service decomposition", confidence=0.87),
-                ExtractedSkill(name="Redis", proficiency="intermediate", years=3.0, evidence="Idempotency key cache", confidence=0.88),
-                ExtractedSkill(name="REST API", proficiency="expert", years=7.0, evidence="PCI-DSS compliant APIs", confidence=0.96),
-                ExtractedSkill(name="Docker", proficiency="intermediate", years=2.0, evidence="Containerized deployments", confidence=0.82),
+                ExtractedSkill(
+                    name="Java",
+                    proficiency="expert",
+                    years=7.0,
+                    evidence="Java since 2017",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="Spring Boot",
+                    proficiency="expert",
+                    years=6.0,
+                    evidence="Spring Boot microservices throughout career",
+                    confidence=0.98,
+                ),
+                ExtractedSkill(
+                    name="Payment Gateways",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Razorpay, Stripe, PayTM, UPI",
+                    confidence=0.99,
+                ),
+                ExtractedSkill(
+                    name="PostgreSQL",
+                    proficiency="expert",
+                    years=5.0,
+                    evidence="Ledger and transaction DB design",
+                    confidence=0.95,
+                ),
+                ExtractedSkill(
+                    name="Microservices",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="3-service decomposition",
+                    confidence=0.87,
+                ),
+                ExtractedSkill(
+                    name="Redis",
+                    proficiency="intermediate",
+                    years=3.0,
+                    evidence="Idempotency key cache",
+                    confidence=0.88,
+                ),
+                ExtractedSkill(
+                    name="REST API",
+                    proficiency="expert",
+                    years=7.0,
+                    evidence="PCI-DSS compliant APIs",
+                    confidence=0.96,
+                ),
+                ExtractedSkill(
+                    name="Docker",
+                    proficiency="intermediate",
+                    years=2.0,
+                    evidence="Containerized deployments",
+                    confidence=0.82,
+                ),
             ],
             projects=[
                 ExtractedProject(
@@ -576,8 +1181,17 @@ DEMO_PROFILES = [
                         "Processed ₹100Cr+ monthly with 99.97% uptime and full PCI-DSS compliance. "
                         "Implemented smart retry logic that improved payment success rates from 87% to 96%."
                     ),
-                    start_date="2021-06", end_date="2024-04",
-                    technologies=["Java", "Spring Boot", "Razorpay", "Stripe", "PostgreSQL", "Redis", "Docker"],
+                    start_date="2021-06",
+                    end_date="2024-04",
+                    technologies=[
+                        "Java",
+                        "Spring Boot",
+                        "Razorpay",
+                        "Stripe",
+                        "PostgreSQL",
+                        "Redis",
+                        "Docker",
+                    ],
                 ),
                 ExtractedProject(
                     name="UPI Gateway — Direct UPI Integration",
@@ -586,12 +1200,15 @@ DEMO_PROFILES = [
                         "Developed a direct UPI gateway integration for a leading NBFC, bypassing third-party aggregator fees. "
                         "Saved ₹80L annually in transaction fees and reduced settlement time from T+2 to T+0."
                     ),
-                    start_date="2019-01", end_date="2021-05",
+                    start_date="2019-01",
+                    end_date="2021-05",
                     technologies=["Java", "Spring Boot", "UPI", "PostgreSQL", "REST API"],
                 ),
             ],
             certifications=[
-                ExtractedCertification(name="Oracle Certified Professional Java SE 17", issuer="Oracle", year=2022),
+                ExtractedCertification(
+                    name="Oracle Certified Professional Java SE 17", issuer="Oracle", year=2022
+                ),
             ],
         ),
     },
@@ -602,31 +1219,104 @@ DEMO_PROFILES = [
 # Key = email, value = list of inferred skill dicts
 INFERRED_SKILLS: dict[str, list[dict]] = {
     "priya.sharma@demo.com": [
-        {"name": "React Query", "proficiency": "intermediate", "years": 2.0, "confidence": 0.80, "reasoning": "Used React Query in Next.js projects"},
-        {"name": "Vite", "proficiency": "intermediate", "years": 1.5, "confidence": 0.75, "reasoning": "Modern bundler used in recent projects"},
+        {
+            "name": "React Query",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.80,
+            "reasoning": "Used React Query in Next.js projects",
+        },
+        {
+            "name": "Vite",
+            "proficiency": "intermediate",
+            "years": 1.5,
+            "confidence": 0.75,
+            "reasoning": "Modern bundler used in recent projects",
+        },
     ],
     "rahul.mehta@demo.com": [
-        {"name": "Maven", "proficiency": "intermediate", "years": 5.0, "confidence": 0.85, "reasoning": "Standard Java build tool used with Spring Boot"},
-        {"name": "JUnit", "proficiency": "intermediate", "years": 4.0, "confidence": 0.82, "reasoning": "Java testing standard"},
-        {"name": "Hibernate", "proficiency": "intermediate", "years": 3.5, "confidence": 0.80, "reasoning": "ORM used in Spring Boot projects"},
+        {
+            "name": "Maven",
+            "proficiency": "intermediate",
+            "years": 5.0,
+            "confidence": 0.85,
+            "reasoning": "Standard Java build tool used with Spring Boot",
+        },
+        {
+            "name": "JUnit",
+            "proficiency": "intermediate",
+            "years": 4.0,
+            "confidence": 0.82,
+            "reasoning": "Java testing standard",
+        },
+        {
+            "name": "Hibernate",
+            "proficiency": "intermediate",
+            "years": 3.5,
+            "confidence": 0.80,
+            "reasoning": "ORM used in Spring Boot projects",
+        },
     ],
     "vikram.nair@demo.com": [
-        {"name": "AWS Lambda", "proficiency": "intermediate", "years": 2.0, "confidence": 0.82, "reasoning": "Serverless functions used in microservices"},
-        {"name": "AWS SQS", "proficiency": "intermediate", "years": 2.0, "confidence": 0.80, "reasoning": "Message queuing between microservices"},
-        {"name": "NestJS", "proficiency": "intermediate", "years": 2.0, "confidence": 0.78, "reasoning": "TypeScript-first Node.js framework used in services"},
+        {
+            "name": "AWS Lambda",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.82,
+            "reasoning": "Serverless functions used in microservices",
+        },
+        {
+            "name": "AWS SQS",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.80,
+            "reasoning": "Message queuing between microservices",
+        },
+        {
+            "name": "NestJS",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.78,
+            "reasoning": "TypeScript-first Node.js framework used in services",
+        },
     ],
     "karthik.ramesh@demo.com": [
-        {"name": "Cloud Run", "proficiency": "expert", "years": 3.0, "confidence": 0.88, "reasoning": "GCP serverless containers — primary deployment target"},
-        {"name": "Prisma", "proficiency": "intermediate", "years": 2.0, "confidence": 0.76, "reasoning": "ORM commonly used with Node.js + PostgreSQL"},
+        {
+            "name": "Cloud Run",
+            "proficiency": "expert",
+            "years": 3.0,
+            "confidence": 0.88,
+            "reasoning": "GCP serverless containers — primary deployment target",
+        },
+        {
+            "name": "Prisma",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.76,
+            "reasoning": "ORM commonly used with Node.js + PostgreSQL",
+        },
     ],
     "aditi.singh@demo.com": [
-        {"name": "Module Federation", "proficiency": "expert", "years": 3.0, "confidence": 0.90, "reasoning": "Core technology of MicroFE platform project"},
-        {"name": "Playwright", "proficiency": "intermediate", "years": 2.0, "confidence": 0.77, "reasoning": "E2E testing for frontend component library"},
+        {
+            "name": "Module Federation",
+            "proficiency": "expert",
+            "years": 3.0,
+            "confidence": 0.90,
+            "reasoning": "Core technology of MicroFE platform project",
+        },
+        {
+            "name": "Playwright",
+            "proficiency": "intermediate",
+            "years": 2.0,
+            "confidence": 0.77,
+            "reasoning": "E2E testing for frontend component library",
+        },
     ],
 }
 
 
 # ─── Seeder ───────────────────────────────────────────────────────────────────
+
 
 async def seed_employees() -> None:
     from app.ai.embeddings import embed_single
@@ -687,6 +1377,7 @@ async def seed_employees() -> None:
 
             # Generate and store embedding (rate-limit: Voyage AI free tier = 3 RPM)
             from app.db.models import EmployeeEmbedding
+
             existing_emb = await session.execute(
                 select(EmployeeEmbedding).where(EmployeeEmbedding.employee_id == emp_id)
             )
@@ -704,10 +1395,13 @@ async def seed_employees() -> None:
         # Link the demo employee user (emp@demo.com) to Priya Sharma's record
         # so the /employees/me endpoint works for the demo employee login
         from app.db.models import User
+
         user_res = await session.execute(select(User).where(User.email == "emp@demo.com"))
         demo_user = user_res.scalar_one_or_none()
         if demo_user:
-            emp_res = await session.execute(select(Employee).where(Employee.email == "priya.sharma@demo.com"))
+            emp_res = await session.execute(
+                select(Employee).where(Employee.email == "priya.sharma@demo.com")
+            )
             priya = emp_res.scalar_one_or_none()
             if priya and priya.user_id is None:
                 priya.user_id = demo_user.id

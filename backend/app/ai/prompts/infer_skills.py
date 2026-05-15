@@ -29,36 +29,36 @@ INFER_SKILLS_TOOL: dict = {
                     "properties": {
                         "name": {
                             "type": "string",
-                            "description": "The inferred skill name (use canonical spelling)"
+                            "description": "The inferred skill name (use canonical spelling)",
                         },
                         "proficiency": {
                             "type": "string",
                             "enum": ["novice", "intermediate", "expert"],
-                            "description": "One level below the triggering skill's proficiency unless clearly warranted"
+                            "description": "One level below the triggering skill's proficiency unless clearly warranted",
                         },
                         "years": {
                             "type": "number",
-                            "description": "Conservative estimate; usually same as or less than the triggering skill"
+                            "description": "Conservative estimate; usually same as or less than the triggering skill",
                         },
                         "confidence": {
                             "type": "number",
-                            "description": "0.0–1.0. Max 0.95 for inferred skills. Use 0.60–0.80 for domain inferences."
+                            "description": "0.0–1.0. Max 0.95 for inferred skills. Use 0.60–0.80 for domain inferences.",
                         },
                         "reasoning": {
                             "type": "string",
-                            "description": "One sentence: why this skill is implied, referencing the triggering skill(s)"
+                            "description": "One sentence: why this skill is implied, referencing the triggering skill(s)",
                         },
                         "triggered_by": {
                             "type": "string",
-                            "description": "The extracted skill(s) that imply this one"
-                        }
+                            "description": "The extracted skill(s) that imply this one",
+                        },
                     },
-                    "required": ["name", "proficiency", "confidence", "reasoning", "triggered_by"]
-                }
+                    "required": ["name", "proficiency", "confidence", "reasoning", "triggered_by"],
+                },
             }
         },
-        "required": ["inferred"]
-    }
+        "required": ["inferred"],
+    },
 }
 
 INFER_SYSTEM_PROMPT = """\

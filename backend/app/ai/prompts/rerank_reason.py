@@ -25,7 +25,7 @@ RERANK_TOOL: dict = {
                     "properties": {
                         "employee_id": {
                             "type": "string",
-                            "description": "Exactly as provided in input — do not modify."
+                            "description": "Exactly as provided in input — do not modify.",
                         },
                         "match_score": {
                             "type": "integer",
@@ -39,7 +39,7 @@ RERANK_TOOL: dict = {
                                 "  -5   if location doesn't match\n"
                                 "  -5   if currently allocated when availability was required\n"
                                 "  +0–5 bonus for exceptional relevant experience beyond the ask"
-                            )
+                            ),
                         },
                         "reasoning": {
                             "type": "string",
@@ -48,25 +48,25 @@ RERANK_TOOL: dict = {
                                 "or technologies from their profile. Format: 'Strong match: [specific evidence]. [one gap or bonus if applicable].'"
                                 "\nExample: 'Expert in React (5 yrs), led 2 real-time apps using Socket.IO — "
                                 "exactly what this role needs. Currently unallocated and available immediately.'"
-                            )
+                            ),
                         },
                         "strengths": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "2–4 bullet points of specific matching evidence. Be concrete."
+                            "description": "2–4 bullet points of specific matching evidence. Be concrete.",
                         },
                         "gaps": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "0–3 specific gaps or caveats. Empty array if no meaningful gaps."
-                        }
+                            "description": "0–3 specific gaps or caveats. Empty array if no meaningful gaps.",
+                        },
                     },
-                    "required": ["employee_id", "match_score", "reasoning", "strengths", "gaps"]
-                }
+                    "required": ["employee_id", "match_score", "reasoning", "strengths", "gaps"],
+                },
             }
         },
-        "required": ["ranked"]
-    }
+        "required": ["ranked"],
+    },
 }
 
 RERANK_SYSTEM = """\

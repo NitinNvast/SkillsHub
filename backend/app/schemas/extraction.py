@@ -3,6 +3,7 @@
 These are the shapes Claude returns via tool_use. They are NOT the same as
 the DB models — they're the raw AI output before normalization and persistence.
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -12,7 +13,9 @@ class ExtractedSkill(BaseModel):
     name: str = Field(description="Skill name, normalized to the canonical taxonomy where possible")
     proficiency: str = Field(description="One of: novice | intermediate | expert")
     years: float | None = Field(None, description="Years of experience with this skill")
-    evidence: str | None = Field(None, description="Verbatim or close-paraphrase quote from the resume proving this skill")
+    evidence: str | None = Field(
+        None, description="Verbatim or close-paraphrase quote from the resume proving this skill"
+    )
     confidence: float = Field(description="0.0–1.0 — how confident the extraction is")
 
 
@@ -33,6 +36,7 @@ class ExtractedCertification(BaseModel):
 
 class StructuredProfile(BaseModel):
     """The complete structured output from the extraction pipeline."""
+
     name: str
     email: str | None = None
     location: str | None = None

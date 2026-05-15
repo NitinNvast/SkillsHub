@@ -1,4 +1,5 @@
 """Skills catalog endpoints — read the canonical taxonomy + gap analysis."""
+
 from fastapi import APIRouter
 from sqlalchemy import case, func, select
 
@@ -36,9 +37,9 @@ async def skill_gaps(session: SessionDep, _user: CurrentUser) -> list[SkillGapIt
             Skill.name,
             Skill.category,
             func.count(EmployeeSkill.id).label("employee_count"),
-            func.sum(
-                case((EmployeeSkill.proficiency == "expert", 1), else_=0)
-            ).label("expert_count"),
+            func.sum(case((EmployeeSkill.proficiency == "expert", 1), else_=0)).label(
+                "expert_count"
+            ),
         )
         .outerjoin(
             EmployeeSkill,
@@ -64,12 +65,14 @@ async def skill_gaps(session: SessionDep, _user: CurrentUser) -> list[SkillGapIt
         else:
             severity = "healthy"
 
-        items.append(SkillGapItem(
-            name=row.name,
-            category=row.category,
-            employee_count=count,
-            expert_count=int(expert),
-            gap_severity=severity,
-        ))
+        items.append(
+            SkillGapItem(
+                name=row.name,
+                category=row.category,
+                employee_count=count,
+                expert_count=int(expert),
+                gap_severity=severity,
+            )
+        )
 
     return items

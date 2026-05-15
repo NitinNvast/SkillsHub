@@ -1,4 +1,5 @@
 """Resume upload endpoints."""
+
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, UploadFile

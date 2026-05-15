@@ -6,6 +6,8 @@ import { ArrowLeft, Check, X, Sparkles, ChevronDown, ChevronUp } from "lucide-re
 import Link from "next/link";
 import { useReviewDetail, useApprove, useReject } from "@/lib/api/hooks";
 import { SkillChip } from "@/components/skills/SkillChip";
+import { SkeletonProfile } from "@/components/ui/Skeleton";
+import { toast } from "sonner";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,29 +21,35 @@ export default function ReviewDetailPage() {
 
   function handleApprove() {
     approve(id, {
-      onSuccess: () => router.push("/review"),
+      onSuccess: () => {
+        toast.success("Profile approved and published!");
+        router.push("/review");
+      },
+      onError: () => toast.error("Failed to approve. Please try again."),
     });
   }
 
   function handleReject() {
     reject({ uploadId: id, reason: rejectReason || undefined }, {
-      onSuccess: () => router.push("/review"),
+      onSuccess: () => {
+        toast.success("Profile rejected.");
+        router.push("/review");
+      },
+      onError: () => toast.error("Failed to reject. Please try again."),
     });
   }
 
   if (isLoading) {
     return (
-      <div className="px-8 py-8 max-w-4xl mx-auto space-y-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 rounded-xl border border-[var(--color-border)] bg-white animate-pulse" />
-        ))}
+      <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto">
+        <SkeletonProfile />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="px-8 py-8 max-w-4xl mx-auto">
+      <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto">
         <p className="text-sm text-red-600">Could not load review details.</p>
       </div>
     );
@@ -51,7 +59,7 @@ export default function ReviewDetailPage() {
   const extracted = data.extracted_payload as Record<string, unknown> | null;
 
   return (
-    <div className="px-8 py-8 max-w-4xl mx-auto">
+    <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto animate-fade-up">
       {/* Back nav */}
       <Link href="/review" className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] mb-6 transition-colors">
         <ArrowLeft className="h-4 w-4" />
@@ -59,9 +67,10 @@ export default function ReviewDetailPage() {
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start justify-between gap-4 mb-6 pb-6 border-b border-[var(--color-border)]">
         <div>
-          <h1 className="text-2xl font-semibold">{profile?.name ?? "Unknown candidate"}</h1>
+          <div className="w-8 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full mb-3" />
+          <h1 className="text-2xl font-bold">{profile?.name ?? "Unknown candidate"}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">
             {profile?.title} {profile?.location ? `· ${profile.location}` : ""}
           </p>
@@ -71,14 +80,14 @@ export default function ReviewDetailPage() {
             <>
               <button
                 onClick={() => setShowRejectForm(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 transition"
+                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 transition cursor-pointer"
               >
                 <X className="h-4 w-4" /> Reject
               </button>
               <button
                 onClick={handleApprove}
                 disabled={approving}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 transition cursor-pointer"
               >
                 <Check className="h-4 w-4" />
                 {approving ? "Approving…" : "Approve & Publish"}
@@ -90,18 +99,18 @@ export default function ReviewDetailPage() {
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Optional reason…"
-                className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
               <button
                 onClick={handleReject}
                 disabled={rejecting}
-                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition"
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition cursor-pointer"
               >
                 {rejecting ? "Rejecting…" : "Confirm Reject"}
               </button>
               <button
                 onClick={() => setShowRejectForm(false)}
-                className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition"
+                className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -147,9 +156,9 @@ export default function ReviewDetailPage() {
           <Section title="Projects">
             <div className="space-y-3">
               {profile.projects.map((p) => (
-                <div key={p.id} className="rounded-lg border border-[var(--color-border)] p-3">
+                <div key={p.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium">{p.name}</p>
+                    <p className="text-sm font-semibold">{p.name}</p>
                     {p.role && <span className="text-xs text-[var(--color-muted-foreground)]">{p.role}</span>}
                   </div>
                   {p.description && (
@@ -174,7 +183,7 @@ export default function ReviewDetailPage() {
             <ul className="space-y-1">
               {profile.certifications.map((c) => (
                 <li key={c.id} className="text-sm">
-                  <span className="font-medium">{c.name}</span>
+                  <span className="font-semibold">{c.name}</span>
                   {c.issuer && <span className="text-[var(--color-muted-foreground)]"> · {c.issuer}</span>}
                   {c.year && <span className="text-[var(--color-muted-foreground)]"> · {c.year}</span>}
                 </li>
@@ -185,10 +194,10 @@ export default function ReviewDetailPage() {
 
         {/* Raw text toggle */}
         {data.raw_text_preview && (
-          <div className="rounded-xl border border-[var(--color-border)] bg-white">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm">
             <button
               onClick={() => setShowRaw((v) => !v)}
-              className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium"
+              className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold cursor-pointer"
             >
               Raw Resume Text
               {showRaw ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -209,7 +218,7 @@ export default function ReviewDetailPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-white p-5">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
       <h2 className="text-sm font-semibold mb-3 text-[var(--color-foreground)]">{title}</h2>
       {children}
     </div>

@@ -1,4 +1,5 @@
 """Review queue endpoints — HR-only."""
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -67,9 +68,7 @@ async def reject_upload(
     user: CurrentUser,
 ) -> RejectResponse:
     """Reject and remove from queue."""
-    result = await svc.reject(
-        session, upload_id, reviewer_id=user.id, reason=payload.reason
-    )
+    result = await svc.reject(session, upload_id, reviewer_id=user.id, reason=payload.reason)
     if result is None:
         raise HTTPException(status_code=404, detail="Upload not found")
     return result

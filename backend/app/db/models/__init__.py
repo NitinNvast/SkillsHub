@@ -3,6 +3,7 @@
 Importing this module ensures every table is registered on Base.metadata,
 which Alembic autogen and FastAPI dependency resolution both rely on.
 """
+
 from app.db.models.certification import Certification
 from app.db.models.embedding import EmployeeEmbedding
 from app.db.models.employee import Availability, Employee

@@ -1,4 +1,5 @@
 """Voyage AI embedding client."""
+
 from __future__ import annotations
 
 import voyageai

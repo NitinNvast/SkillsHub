@@ -19,34 +19,34 @@ PARSE_QUERY_TOOL: dict = {
                     "Expand abbreviations, remove location/availability constraints (those are filters), "
                     "add relevant synonyms. Keep it 1–3 sentences. "
                     "Example: 'experienced React engineer with real-time WebSocket experience capable of leading a team'"
-                )
+                ),
             },
             "required_skills": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Skills explicitly required. Use canonical names (React not ReactJS, JavaScript not JS)."
+                "description": "Skills explicitly required. Use canonical names (React not ReactJS, JavaScript not JS).",
             },
             "min_years_per_skill": {
                 "type": "object",
                 "additionalProperties": {"type": "number"},
-                "description": "Minimum years required per skill. e.g. {\"Java\": 3.0}. Only populate when explicitly stated."
+                "description": 'Minimum years required per skill. e.g. {"Java": 3.0}. Only populate when explicitly stated.',
             },
             "location": {
                 "type": "string",
-                "description": "City or region filter if mentioned. null otherwise."
+                "description": "City or region filter if mentioned. null otherwise.",
             },
             "availability": {
                 "type": "array",
                 "items": {"type": "string", "enum": ["available", "partial", "allocated"]},
-                "description": "Filter by availability. If query mentions 'unallocated' or 'available' → [\"available\"]. If 'haven't been on a project' → [\"available\", \"partial\"]."
+                "description": "Filter by availability. If query mentions 'unallocated' or 'available' → [\"available\"]. If 'haven't been on a project' → [\"available\", \"partial\"].",
             },
             "seniority_hint": {
                 "type": "string",
-                "description": "Detected seniority signal: 'junior', 'mid', 'senior', 'lead', 'principal'. null if not mentioned."
-            }
+                "description": "Detected seniority signal: 'junior', 'mid', 'senior', 'lead', 'principal'. null if not mentioned.",
+            },
         },
-        "required": ["semantic_text", "required_skills", "min_years_per_skill", "availability"]
-    }
+        "required": ["semantic_text", "required_skills", "min_years_per_skill", "availability"],
+    },
 }
 
 PARSE_QUERY_SYSTEM = """\

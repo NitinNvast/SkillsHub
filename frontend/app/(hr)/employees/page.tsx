@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search, MapPin, Briefcase } from "lucide-react";
 import { useEmployees } from "@/lib/api/hooks";
+import { SkeletonCard } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 
 const AVAILABILITY_STYLE: Record<string, string> = {
@@ -23,9 +24,10 @@ export default function EmployeesPage() {
   const { data: employees, isLoading } = useEmployees(q || undefined);
 
   return (
-    <div className="px-8 py-8 max-w-5xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Employee Directory</h1>
+    <div className="px-4 sm:px-8 py-8 max-w-5xl mx-auto animate-fade-up">
+      <div className="mb-8 pb-6 border-b border-[var(--color-border)]">
+        <div className="w-8 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full mb-3" />
+        <h1 className="text-2xl font-bold">Employee Directory</h1>
         <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
           {employees ? `${employees.length} employees` : "Loading…"}
         </p>
@@ -38,15 +40,13 @@ export default function EmployeesPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Filter by name, skill, or location…"
-          className="w-full rounded-xl border border-[var(--color-border)] bg-white pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition"
+          className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition shadow-sm"
         />
       </div>
 
       {isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-32 rounded-xl border border-[var(--color-border)] bg-white animate-pulse" />
-          ))}
+          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
@@ -57,12 +57,12 @@ export default function EmployeesPage() {
       )}
 
       {employees && employees.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up stagger-children">
           {employees.map((emp) => (
             <Link
               key={emp.id}
               href={`/employees/${emp.id}`}
-              className="rounded-xl border border-[var(--color-border)] bg-white p-4 hover:shadow-md transition-shadow"
+              className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800 hover:-translate-y-0.5 transition-all duration-200 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
@@ -81,7 +81,7 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <span className={cn(
-                  "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                  "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold",
                   AVAILABILITY_STYLE[emp.availability] ?? AVAILABILITY_STYLE.allocated,
                 )}>
                   {AVAILABILITY_LABEL[emp.availability] ?? "Allocated"}

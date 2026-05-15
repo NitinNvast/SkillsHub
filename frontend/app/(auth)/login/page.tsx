@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Brain } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { ApiError } from "@/lib/api/client";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -28,15 +30,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-muted)] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] px-4">
+      <ThemeToggle variant="floating" />
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold">SkillsHub</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">AI-Powered Skills Intelligence</p>
+          <div className="inline-flex items-center justify-center gap-2 mb-3">
+            <Brain className="h-7 w-7 text-indigo-600" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              SkillsHub
+            </h1>
+          </div>
+          <p className="text-sm text-[var(--color-muted-foreground)]">AI-Powered Skills Intelligence</p>
         </div>
 
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-8 shadow-sm">
-          <h2 className="text-lg font-medium mb-6">Sign in</h2>
+        <div className="rounded-xl border border-[var(--color-border)] border-t-4 border-t-indigo-500 bg-[var(--color-card)] p-8 shadow-xl">
+          <h2 className="text-lg font-semibold mb-6">Sign in</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -47,7 +55,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="hr@demo.com"
                 required
-                className="w-full rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
             </div>
             <div>
@@ -58,7 +66,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="demo1234"
                 required
-                className="w-full rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
             </div>
 
@@ -71,14 +79,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-[var(--color-primary)] py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 transition"
+              className="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 disabled:opacity-60 transition cursor-pointer"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
           <div className="mt-6 rounded-lg bg-[var(--color-muted)] p-3 text-xs text-[var(--color-muted-foreground)] space-y-1">
-            <p className="font-medium text-[var(--color-foreground)]">Demo credentials</p>
+            <p className="font-semibold text-[var(--color-foreground)]">Demo credentials</p>
             <p>HR: <span className="font-mono">hr@demo.com</span> / <span className="font-mono">demo1234</span></p>
             <p>Employee: <span className="font-mono">emp@demo.com</span> / <span className="font-mono">demo1234</span></p>
           </div>

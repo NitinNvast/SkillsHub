@@ -1,4 +1,5 @@
 """Search request/response schemas."""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -15,6 +16,7 @@ class SearchRequest(BaseModel):
 
 class ParsedQuery(BaseModel):
     """Structured interpretation of the NL query — shown in UI for transparency."""
+
     semantic_text: str
     required_skills: list[str] = []
     min_years_per_skill: dict[str, float] = {}

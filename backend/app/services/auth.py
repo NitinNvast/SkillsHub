@@ -1,4 +1,5 @@
 """Authentication service: verify credentials, mint tokens."""
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

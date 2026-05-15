@@ -11,6 +11,7 @@ Full search flow:
   5. Sonnet re-ranks top-20 → scored + reasoned results (single LLM call)
   6. Return top-K (default 8)
 """
+
 from __future__ import annotations
 
 import logging
@@ -26,6 +27,7 @@ log = logging.getLogger(__name__)
 
 
 # ─── Embed a single employee ──────────────────────────────────────────────────
+
 
 async def embed_employee(session: AsyncSession, employee_id: UUID) -> None:
     """Build profile summary, embed via Voyage, upsert into employee_embeddings."""
@@ -58,6 +60,7 @@ async def embed_employee(session: AsyncSession, employee_id: UUID) -> None:
 
 # ─── Step 1: Parse NL query ───────────────────────────────────────────────────
 
+
 async def _parse_query(query: str) -> dict:
     from app.ai.client import get_client
     from app.ai.prompts.parse_query import (
@@ -79,7 +82,12 @@ async def _parse_query(query: str) -> dict:
     tool_block = next((b for b in response.content if b.type == "tool_use"), None)
     if tool_block is None:
         # Graceful fallback: use query as-is
-        return {"semantic_text": query, "required_skills": [], "min_years_per_skill": {}, "availability": []}
+        return {
+            "semantic_text": query,
+            "required_skills": [],
+            "min_years_per_skill": {},
+            "availability": [],
+        }
 
     raw = tool_block.input if isinstance(tool_block.input, dict) else {}
     return {
@@ -93,6 +101,7 @@ async def _parse_query(query: str) -> dict:
 
 
 # ─── Step 5: Re-rank + reason ─────────────────────────────────────────────────
+
 
 async def _rerank_candidates(
     query: str,
@@ -127,9 +136,13 @@ async def _rerank_candidates(
     if tool_block is None:
         log.warning("Sonnet re-rank returned no tool call — falling back to similarity order")
         return [
-            {**c, "match_score": int(c.get("similarity", 0.5) * 100),
-             "reasoning": "Matched based on semantic similarity.",
-             "strengths": [], "gaps": []}
+            {
+                **c,
+                "match_score": int(c.get("similarity", 0.5) * 100),
+                "reasoning": "Matched based on semantic similarity.",
+                "strengths": [],
+                "gaps": [],
+            }
             for c in candidates[:limit]
         ]
 
@@ -142,18 +155,21 @@ async def _rerank_candidates(
     for r in ranked_raw[:limit]:
         eid = r.get("employee_id", "")
         base = id_to_candidate.get(eid, {})
-        results.append({
-            **base,
-            "match_score": max(0, min(100, int(r.get("match_score", 50)))),
-            "reasoning": r.get("reasoning", ""),
-            "strengths": r.get("strengths", []),
-            "gaps": r.get("gaps", []),
-        })
+        results.append(
+            {
+                **base,
+                "match_score": max(0, min(100, int(r.get("match_score", 50)))),
+                "reasoning": r.get("reasoning", ""),
+                "strengths": r.get("strengths", []),
+                "gaps": r.get("gaps", []),
+            }
+        )
 
     return results
 
 
 # ─── Full search pipeline ─────────────────────────────────────────────────────
+
 
 async def run_semantic_search(
     session: AsyncSession,
@@ -171,19 +187,28 @@ async def run_semantic_search(
         }
     """
     from app.ai.embeddings import embed_single
-    from app.db.repos.embeddings import load_employee_for_rerank, render_profile_summary, vector_search
+    from app.db.repos.embeddings import (
+        load_employee_for_rerank,
+        render_profile_summary,
+        vector_search,
+    )
     from app.schemas.skill import EmployeeSkillOut
 
     # ── 1. Parse NL query ──────────────────────────────────────
     parsed = await _parse_query(query)
-    log.info("Parsed query: semantic='%s', skills=%s, loc=%s",
-             parsed["semantic_text"][:60], parsed["required_skills"], parsed.get("location"))
+    log.info(
+        "Parsed query: semantic='%s', skills=%s, loc=%s",
+        parsed["semantic_text"][:60],
+        parsed["required_skills"],
+        parsed.get("location"),
+    )
 
     # ── 2. Embed the semantic text ─────────────────────────────
     query_vector = await embed_single(parsed["semantic_text"], input_type="query")
 
     # ── 3. pgvector pre-filtered retrieval ────────────────────
     from app.core.config import settings
+
     retrieval_rows = await vector_search(
         session,
         query_vector,
@@ -208,16 +233,21 @@ async def run_semantic_search(
         if emp is None:
             continue
         summary = render_profile_summary(emp)
-        top_skills = sorted(emp.skills, key=lambda s: (
-            {"expert": 0, "intermediate": 1, "novice": 2}.get(s.proficiency, 1),
-            -(float(s.years) if s.years else 0),
-        ))[:6]
+        top_skills = sorted(
+            emp.skills,
+            key=lambda s: (
+                {"expert": 0, "intermediate": 1, "novice": 2}.get(s.proficiency, 1),
+                -(float(s.years) if s.years else 0),
+            ),
+        )[:6]
 
-        candidates_for_rerank.append({
-            **row,
-            "summary_text": summary,
-            "top_skills_raw": top_skills,
-        })
+        candidates_for_rerank.append(
+            {
+                **row,
+                "summary_text": summary,
+                "top_skills_raw": top_skills,
+            }
+        )
 
     # ── 5. Sonnet re-rank (single call, all candidates) ────────
     ranked = await _rerank_candidates(query, candidates_for_rerank, limit=limit)
@@ -232,20 +262,22 @@ async def run_semantic_search(
             except Exception:
                 pass
 
-        results.append({
-            "employee_id": r["employee_id"],
-            "name": r.get("name", ""),
-            "title": r.get("title"),
-            "location": r.get("location"),
-            "availability": r.get("availability", "unknown"),
-            "total_years_exp": r.get("total_years_exp"),
-            "match_score": r.get("match_score", 0),
-            "reasoning": r.get("reasoning", ""),
-            "strengths": r.get("strengths", []),
-            "gaps": r.get("gaps", []),
-            "top_skills": skills_out,
-            "similarity": r.get("similarity", 0.0),
-        })
+        results.append(
+            {
+                "employee_id": r["employee_id"],
+                "name": r.get("name", ""),
+                "title": r.get("title"),
+                "location": r.get("location"),
+                "availability": r.get("availability", "unknown"),
+                "total_years_exp": r.get("total_years_exp"),
+                "match_score": r.get("match_score", 0),
+                "reasoning": r.get("reasoning", ""),
+                "strengths": r.get("strengths", []),
+                "gaps": r.get("gaps", []),
+                "top_skills": skills_out,
+                "similarity": r.get("similarity", 0.0),
+            }
+        )
 
     return {
         "parsed_query": parsed,

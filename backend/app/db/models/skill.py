@@ -1,4 +1,5 @@
 """Skill catalog — canonical taxonomy of skills (seeded, mostly read-only)."""
+
 from enum import Enum
 from uuid import UUID, uuid4
 

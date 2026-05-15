@@ -1,4 +1,5 @@
 """Employee directory + profile endpoints."""
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException

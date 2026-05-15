@@ -1,4 +1,5 @@
 """User model — authentication identities."""
+
 from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4

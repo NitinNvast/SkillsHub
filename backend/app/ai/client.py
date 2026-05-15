@@ -1,4 +1,5 @@
 """Anthropic client singleton with prompt caching enabled."""
+
 import anthropic
 
 from app.core.config import settings

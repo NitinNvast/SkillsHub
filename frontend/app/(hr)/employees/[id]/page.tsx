@@ -29,7 +29,7 @@ export default function EmployeeProfilePage() {
     return (
       <div className="px-8 py-8 max-w-4xl mx-auto space-y-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-28 rounded-xl border border-[var(--color-border)] bg-white animate-pulse" />
+          <div key={i} className="h-28 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] animate-pulse" />
         ))}
       </div>
     );
@@ -60,14 +60,14 @@ export default function EmployeeProfilePage() {
       </Link>
 
       {/* Hero */}
-      <div className="rounded-xl border border-[var(--color-border)] bg-white p-6 mb-5">
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 mb-5 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xl font-bold shrink-0">
+            <div className="h-14 w-14 rounded-full ring-2 ring-indigo-200 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
               {emp.name[0]}
             </div>
             <div>
-              <h1 className="text-xl font-semibold">{emp.name}</h1>
+              <h1 className="text-xl font-bold">{emp.name}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-[var(--color-muted-foreground)]">
                 {emp.title && (
                   <span className="flex items-center gap-1">
@@ -88,7 +88,7 @@ export default function EmployeeProfilePage() {
             </div>
           </div>
           <span className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs font-medium",
+            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold",
             AVAILABILITY_STYLE[emp.availability] ?? AVAILABILITY_STYLE.allocated,
           )}>
             {AVAILABILITY_LABEL[emp.availability] ?? "Allocated"}
@@ -104,19 +104,19 @@ export default function EmployeeProfilePage() {
         {emp.current_project && (
           <div className="mt-3 flex items-center gap-1.5 text-sm">
             <span className="text-[var(--color-muted-foreground)]">Current project:</span>
-            <span className="font-medium">{emp.current_project}</span>
+            <span className="font-semibold">{emp.current_project}</span>
           </div>
         )}
       </div>
 
       {/* Skills by category */}
       {Object.keys(skillsByCategory).length > 0 && (
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 mb-5">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 mb-5 shadow-sm">
           <h2 className="text-sm font-semibold mb-4">Skills</h2>
           <div className="space-y-4">
             {Object.entries(skillsByCategory).map(([cat, skills]) => (
               <div key={cat}>
-                <p className="text-xs text-[var(--color-muted-foreground)] font-medium uppercase tracking-wide mb-2">
+                <p className="text-xs text-[var(--color-muted-foreground)] font-semibold uppercase tracking-wide mb-2">
                   {cat}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -141,17 +141,17 @@ export default function EmployeeProfilePage() {
 
       {/* Projects */}
       {emp.projects.length > 0 && (
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 mb-5">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 mb-5 shadow-sm">
           <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
             <FolderOpen className="h-4 w-4 text-[var(--color-muted-foreground)]" />
             Projects
           </h2>
           <div className="space-y-3">
             {emp.projects.map((p) => (
-              <div key={p.id} className="rounded-lg border border-[var(--color-border)] p-4">
+              <div key={p.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium">{p.name}</p>
+                    <p className="text-sm font-semibold">{p.name}</p>
                     {p.role && <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{p.role}</p>}
                   </div>
                   {(p.start_date || p.end_date) && (
@@ -180,7 +180,7 @@ export default function EmployeeProfilePage() {
 
       {/* Certifications */}
       {emp.certifications.length > 0 && (
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-5">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
           <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
             <Award className="h-4 w-4 text-[var(--color-muted-foreground)]" />
             Certifications
@@ -189,7 +189,7 @@ export default function EmployeeProfilePage() {
             {emp.certifications.map((c) => (
               <li key={c.id} className="flex items-center justify-between text-sm">
                 <div>
-                  <span className="font-medium">{c.name}</span>
+                  <span className="font-semibold">{c.name}</span>
                   {c.issuer && <span className="text-[var(--color-muted-foreground)] ml-2">· {c.issuer}</span>}
                 </div>
                 {c.year && <span className="text-xs text-[var(--color-muted-foreground)]">{c.year}</span>}

@@ -6,6 +6,7 @@ The profile summary is what we embed. Its design determines search quality:
   - Title/role/location → structured filter fallback
   - Inferred skills included → "who knows React" finds Next.js devs too
 """
+
 from __future__ import annotations
 
 import logging
@@ -24,6 +25,7 @@ log = logging.getLogger(__name__)
 
 
 # ─── Profile summary renderer ────────────────────────────────────────────────
+
 
 def render_profile_summary(employee: Employee) -> str:
     """
@@ -53,7 +55,9 @@ def render_profile_summary(employee: Employee) -> str:
         meta_parts.append("Status: Partially available")
     elif avail == "allocated":
         if employee.last_project_end_date:
-            meta_parts.append(f"Status: Currently allocated (until {employee.last_project_end_date})")
+            meta_parts.append(
+                f"Status: Currently allocated (until {employee.last_project_end_date})"
+            )
         else:
             meta_parts.append("Status: Currently allocated")
     if meta_parts:
@@ -65,15 +69,18 @@ def render_profile_summary(employee: Employee) -> str:
 
     # Skills — separated by source for clarity
     extracted_skills = [s for s in employee.skills if s.source == "extracted"]
-    inferred_skills  = [s for s in employee.skills if s.source == "inferred"]
-    manual_skills    = [s for s in employee.skills if s.source == "manual"]
+    inferred_skills = [s for s in employee.skills if s.source == "inferred"]
+    manual_skills = [s for s in employee.skills if s.source == "manual"]
 
     all_primary = extracted_skills + manual_skills
     if all_primary:
-        sorted_skills = sorted(all_primary, key=lambda s: (
-            {"expert": 0, "intermediate": 1, "novice": 2}.get(s.proficiency, 1),
-            -(float(s.years) if s.years else 0),
-        ))
+        sorted_skills = sorted(
+            all_primary,
+            key=lambda s: (
+                {"expert": 0, "intermediate": 1, "novice": 2}.get(s.proficiency, 1),
+                -(float(s.years) if s.years else 0),
+            ),
+        )
         skill_parts = []
         for s in sorted_skills:
             part = f"{s.skill.name} ({s.proficiency}"
@@ -119,6 +126,7 @@ def render_profile_summary(employee: Employee) -> str:
 
 # ─── Upsert embedding ─────────────────────────────────────────────────────────
 
+
 async def upsert_employee_embedding(
     session: AsyncSession,
     employee_id: UUID,
@@ -143,6 +151,7 @@ async def upsert_employee_embedding(
 
 
 # ─── Vector search ────────────────────────────────────────────────────────────
+
 
 async def vector_search(
     session: AsyncSession,
@@ -212,16 +221,18 @@ async def vector_search(
     rows = await session.execute(text(base_sql), params)
     results = []
     for row in rows:
-        results.append({
-            "employee_id": str(row.employee_id),
-            "similarity": float(row.similarity),
-            "name": row.name,
-            "title": row.title,
-            "location": row.location,
-            "availability": row.availability,
-            "total_years_exp": float(row.total_years_exp) if row.total_years_exp else None,
-            "summary": row.summary,
-        })
+        results.append(
+            {
+                "employee_id": str(row.employee_id),
+                "similarity": float(row.similarity),
+                "name": row.name,
+                "title": row.title,
+                "location": row.location,
+                "availability": row.availability,
+                "total_years_exp": float(row.total_years_exp) if row.total_years_exp else None,
+                "summary": row.summary,
+            }
+        )
     return results
 
 

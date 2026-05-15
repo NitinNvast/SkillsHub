@@ -4,6 +4,7 @@ Revision ID: 001
 Revises:
 Create Date: 2026-05-15
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -31,7 +32,9 @@ def upgrade() -> None:
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column("role", sa.String(20), nullable=False),
         sa.Column("name", sa.String(255), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("email", name="uq_users_email"),
     )
     op.create_index("ix_users_email", "users", ["email"], unique=True)
@@ -40,8 +43,12 @@ def upgrade() -> None:
     op.create_table(
         "employees",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("email", sa.String(255), nullable=False),
         sa.Column("location", sa.String(255)),
@@ -51,8 +58,12 @@ def upgrade() -> None:
         sa.Column("current_project", sa.String(500)),
         sa.Column("last_project_end_date", sa.Date),
         sa.Column("availability", sa.String(20), nullable=False, server_default="available"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("email", name="uq_employees_email"),
     )
     op.create_index("ix_employees_email", "employees", ["email"], unique=True)
@@ -68,18 +79,25 @@ def upgrade() -> None:
     )
     op.create_index("ix_skills_catalog_name", "skills_catalog", ["name"], unique=True)
     op.execute(
-        "CREATE INDEX ix_skills_catalog_name_trgm "
-        "ON skills_catalog USING gin (name gin_trgm_ops)"
+        "CREATE INDEX ix_skills_catalog_name_trgm ON skills_catalog USING gin (name gin_trgm_ops)"
     )
 
     # ─── employee_skills ───────────────────────────────────
     op.create_table(
         "employee_skills",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("employee_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("skill_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("skills_catalog.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "employee_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("employees.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "skill_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("skills_catalog.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("proficiency", sa.String(20), nullable=False),
         sa.Column("years", sa.Numeric(4, 1)),
         sa.Column("source", sa.String(20), nullable=False),
@@ -94,8 +112,12 @@ def upgrade() -> None:
     op.create_table(
         "projects",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("employee_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "employee_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("employees.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("role", sa.String(255)),
         sa.Column("description", sa.Text),
@@ -109,8 +131,12 @@ def upgrade() -> None:
     op.create_table(
         "certifications",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("employee_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "employee_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("employees.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("issuer", sa.String(255)),
         sa.Column("year", sa.Integer),
@@ -121,8 +147,12 @@ def upgrade() -> None:
     op.create_table(
         "resume_uploads",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("employee_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("employees.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "employee_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("employees.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("source", sa.String(20), nullable=False),
         sa.Column("file_path", sa.String(1024)),
         sa.Column("raw_text", sa.Text),
@@ -130,10 +160,16 @@ def upgrade() -> None:
         sa.Column("extracted_payload", postgresql.JSONB),
         sa.Column("notes", sa.Text),
         sa.Column("error", sa.Text),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.Column("reviewed_at", sa.DateTime(timezone=True)),
-        sa.Column("reviewed_by", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "reviewed_by",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
     )
     op.create_index("ix_resume_uploads_status", "resume_uploads", ["status"])
     op.create_index("ix_resume_uploads_employee_id", "resume_uploads", ["employee_id"])
@@ -141,11 +177,17 @@ def upgrade() -> None:
     # ─── employee_embeddings (pgvector) ────────────────────
     op.create_table(
         "employee_embeddings",
-        sa.Column("employee_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("employees.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column(
+            "employee_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("employees.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
         sa.Column("vector", Vector(1024), nullable=False),
         sa.Column("summary_text", sa.Text, nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.execute(
         "CREATE INDEX ix_employee_embeddings_vector_hnsw "

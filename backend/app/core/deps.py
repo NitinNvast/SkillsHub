@@ -1,4 +1,5 @@
 """FastAPI dependencies: DB session, current user, role gates."""
+
 from typing import Annotated
 from uuid import UUID
 

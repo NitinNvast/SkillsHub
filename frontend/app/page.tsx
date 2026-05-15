@@ -1,23 +1,50 @@
 import Link from "next/link";
+import { Brain, Zap, Search, Shield } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-24">
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-24 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+      <ThemeToggle variant="floating" />
       <div className="max-w-2xl text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-1 text-xs text-[var(--color-muted-foreground)]">
-          <span className="h-2 w-2 rounded-full bg-[var(--color-success)]" />
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300 backdrop-blur-sm">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
           AI-Powered Skills Intelligence
         </div>
-        <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-          SkillsHub
-        </h1>
-        <p className="mt-6 text-lg text-[var(--color-muted-foreground)]">
+
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Brain className="h-10 w-10 text-blue-400" />
+          <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl">
+            SkillsHub
+          </h1>
+        </div>
+
+        <p className="mt-4 text-lg text-slate-300 leading-relaxed">
           Smart resume ingestion. Semantic HR search. Real reasoning behind every result.
         </p>
+
+        {/* Feature highlights */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-slate-400">
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-blue-400 shrink-0" />
+            <span>AI extracts skills from any resume</span>
+          </div>
+          <div className="hidden sm:block h-4 w-px bg-slate-700" />
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-purple-400 shrink-0" />
+            <span>Ask in plain English to find talent</span>
+          </div>
+          <div className="hidden sm:block h-4 w-px bg-slate-700" />
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span>HR review gate before publishing</span>
+          </div>
+        </div>
+
         <div className="mt-10 flex items-center justify-center gap-3">
           <Link
             href="/login"
-            className="rounded-md bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-primary-foreground)] transition hover:opacity-90"
+            className="rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:from-indigo-600 hover:to-indigo-700 cursor-pointer"
           >
             Sign in
           </Link>
@@ -25,7 +52,7 @@ export default function Home() {
             href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/docs`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-md border border-[var(--color-border)] px-5 py-2.5 text-sm font-medium transition hover:bg-[var(--color-muted)]"
+            className="rounded-lg border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-slate-200 backdrop-blur-sm transition hover:bg-white/20 cursor-pointer"
           >
             API docs
           </a>

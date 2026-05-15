@@ -1,4 +1,5 @@
 """Employee read/write business logic."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -28,7 +29,7 @@ async def list_employees(session: AsyncSession, q: str | None = None) -> list[Em
     items: list[EmployeeListItem] = []
     for e in employees:
         # Top 5 skills by years desc (a small heuristic for the directory card)
-        top = sorted(e.skills, key=lambda s: (s.years or 0), reverse=True)[:5]
+        top = sorted(e.skills, key=lambda s: s.years or 0, reverse=True)[:5]
         items.append(
             EmployeeListItem(
                 id=e.id,

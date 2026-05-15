@@ -8,6 +8,7 @@ Design goals:
   - Canonical name mapping → reduces normalization work post-extraction
   - Prompt caching → system block is marked cache_control=ephemeral
 """
+
 from __future__ import annotations
 
 # ─── Tool schema ─────────────────────────────────────────────────────────────
@@ -29,11 +30,11 @@ EXTRACT_PROFILE_TOOL: dict = {
             "title": {"type": "string", "description": "Current or most recent job title"},
             "total_years_exp": {
                 "type": "number",
-                "description": "Best estimate of total professional years. Infer from career start date if not explicit."
+                "description": "Best estimate of total professional years. Infer from career start date if not explicit.",
             },
             "summary": {
                 "type": "string",
-                "description": "2–3 sentence professional summary written in third person."
+                "description": "2–3 sentence professional summary written in third person.",
             },
             "skills": {
                 "type": "array",
@@ -43,7 +44,7 @@ EXTRACT_PROFILE_TOOL: dict = {
                     "properties": {
                         "name": {
                             "type": "string",
-                            "description": "Canonical skill name. Map variants: 'JS'→'JavaScript', 'ReactJS'→'React', etc."
+                            "description": "Canonical skill name. Map variants: 'JS'→'JavaScript', 'ReactJS'→'React', etc.",
                         },
                         "proficiency": {
                             "type": "string",
@@ -53,18 +54,18 @@ EXTRACT_PROFILE_TOOL: dict = {
                                 "  expert: 4+ years OR led/architected/principal/senior mention OR built production systems at scale\n"
                                 "  intermediate: 1.5–4 years OR 'experience with' OR worked on real projects\n"
                                 "  novice: <1.5 years OR 'familiar with' / 'learning' / 'exposure to' / side-project only"
-                            )
+                            ),
                         },
                         "years": {
                             "type": "number",
-                            "description": "Years of experience. Estimate from dates if not stated."
+                            "description": "Years of experience. Estimate from dates if not stated.",
                         },
                         "evidence": {
                             "type": "string",
                             "description": (
                                 "Verbatim or close-paraphrase from the resume that justifies this skill and proficiency. "
                                 "Keep it to 1–2 sentences."
-                            )
+                            ),
                         },
                         "confidence": {
                             "type": "number",
@@ -72,11 +73,11 @@ EXTRACT_PROFILE_TOOL: dict = {
                                 "0.0–1.0. Use 0.95 if explicitly stated with years. "
                                 "0.80 if clearly present but years unstated. "
                                 "0.65 if inferred from project context."
-                            )
-                        }
+                            ),
+                        },
                     },
-                    "required": ["name", "proficiency", "confidence"]
-                }
+                    "required": ["name", "proficiency", "confidence"],
+                },
             },
             "projects": {
                 "type": "array",
@@ -87,18 +88,21 @@ EXTRACT_PROFILE_TOOL: dict = {
                         "role": {"type": "string"},
                         "description": {
                             "type": "string",
-                            "description": "2–4 sentences: what was built, technologies used, scale/impact."
+                            "description": "2–4 sentences: what was built, technologies used, scale/impact.",
                         },
                         "start_date": {"type": "string", "description": "YYYY-MM or YYYY"},
-                        "end_date": {"type": "string", "description": "YYYY-MM, YYYY, or null if current"},
+                        "end_date": {
+                            "type": "string",
+                            "description": "YYYY-MM, YYYY, or null if current",
+                        },
                         "technologies": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "Technologies explicitly mentioned for this project."
-                        }
+                            "description": "Technologies explicitly mentioned for this project.",
+                        },
                     },
-                    "required": ["name", "description", "technologies"]
-                }
+                    "required": ["name", "description", "technologies"],
+                },
             },
             "certifications": {
                 "type": "array",
@@ -107,14 +111,14 @@ EXTRACT_PROFILE_TOOL: dict = {
                     "properties": {
                         "name": {"type": "string"},
                         "issuer": {"type": "string"},
-                        "year": {"type": "integer"}
+                        "year": {"type": "integer"},
                     },
-                    "required": ["name"]
-                }
-            }
+                    "required": ["name"],
+                },
+            },
         },
-        "required": ["name", "skills", "projects", "certifications"]
-    }
+        "required": ["name", "skills", "projects", "certifications"],
+    },
 }
 
 # ─── System prompt ────────────────────────────────────────────────────────────

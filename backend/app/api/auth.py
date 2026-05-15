@@ -1,4 +1,5 @@
 """Auth endpoints — JSON-based login (matches the frontend) + /me."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
