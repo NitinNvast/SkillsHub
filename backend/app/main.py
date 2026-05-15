@@ -47,7 +47,19 @@ async def root():
 
 @app.get("/health", tags=["health"])
 async def health():
-    return {"status": "ok", "extraction_model": settings.extraction_model}
+    """Liveness + AI provider routing info.
+
+    `providers` reports the configured (provider, model) for each AI task.
+    `provider_health` reports whether each provider could be constructed
+    with the credentials provided (best-effort).
+    """
+    from app.ai.providers import ai_manager
+
+    return {
+        "status": "ok",
+        "providers": ai_manager.describe_routes(),
+        "provider_health": await ai_manager.health(),
+    }
 
 
 # Routers

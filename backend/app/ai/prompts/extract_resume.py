@@ -1,129 +1,137 @@
 """
-Extraction prompt + tool schema for Claude Sonnet.
+Extraction prompt + tool schema (provider-neutral).
 
 Design goals:
   - Precise proficiency rules → reproducible novice/intermediate/expert labels
   - Evidence extraction → every skill has a quoted source from the resume
   - Confidence scoring → flags uncertain extractions for human review
   - Canonical name mapping → reduces normalization work post-extraction
-  - Prompt caching → system block is marked cache_control=ephemeral
+  - Prompt caching → enabled via ChatRequest.cache_system_prompt; providers
+    that don't support caching (OpenAI/Groq/Gemini) silently ignore the hint.
 """
 
 from __future__ import annotations
 
-# ─── Tool schema ─────────────────────────────────────────────────────────────
-# Claude will "call" this tool with the extracted profile as its arguments.
-# tool_use forces structured output — no free-text wrapping, no partial JSON.
+from app.ai.providers import ToolSpec
 
-EXTRACT_PROFILE_TOOL: dict = {
-    "name": "extract_profile",
-    "description": (
+# ─── Tool schema ─────────────────────────────────────────────────────────────
+# The model "calls" this tool with the extracted profile as its arguments.
+# Tool-use forces structured output — no free-text wrapping, no partial JSON.
+
+_EXTRACT_PROFILE_INPUT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "description": "Full name"},
+        "email": {"type": "string"},
+        "location": {"type": "string", "description": "City, Country or similar"},
+        "title": {"type": "string", "description": "Current or most recent job title"},
+        "total_years_exp": {
+            "type": "number",
+            "description": "Best estimate of total professional years. Infer from career start date if not explicit.",
+        },
+        "summary": {
+            "type": "string",
+            "description": "2–3 sentence professional summary written in third person.",
+        },
+        "skills": {
+            "type": "array",
+            "description": "Every distinct technical skill mentioned or clearly implied. One entry per skill.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Canonical skill name. Map variants: 'JS'→'JavaScript', 'ReactJS'→'React', etc.",
+                    },
+                    "proficiency": {
+                        "type": "string",
+                        "enum": ["novice", "intermediate", "expert"],
+                        "description": (
+                            "Use these rules strictly:\n"
+                            "  expert: 4+ years OR led/architected/principal/senior mention OR built production systems at scale\n"
+                            "  intermediate: 1.5–4 years OR 'experience with' OR worked on real projects\n"
+                            "  novice: <1.5 years OR 'familiar with' / 'learning' / 'exposure to' / side-project only"
+                        ),
+                    },
+                    "years": {
+                        "type": "number",
+                        "description": "Years of experience. Estimate from dates if not stated.",
+                    },
+                    "evidence": {
+                        "type": "string",
+                        "description": (
+                            "Verbatim or close-paraphrase from the resume that justifies this skill and proficiency. "
+                            "Keep it to 1–2 sentences."
+                        ),
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "description": (
+                            "0.0–1.0. Use 0.95 if explicitly stated with years. "
+                            "0.80 if clearly present but years unstated. "
+                            "0.65 if inferred from project context."
+                        ),
+                    },
+                },
+                "required": ["name", "proficiency", "confidence"],
+            },
+        },
+        "projects": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "role": {"type": "string"},
+                    "description": {
+                        "type": "string",
+                        "description": "2–4 sentences: what was built, technologies used, scale/impact.",
+                    },
+                    "start_date": {"type": "string", "description": "YYYY-MM or YYYY"},
+                    "end_date": {
+                        "type": "string",
+                        "description": "YYYY-MM, YYYY, or null if current",
+                    },
+                    "technologies": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Technologies explicitly mentioned for this project.",
+                    },
+                },
+                "required": ["name", "description", "technologies"],
+            },
+        },
+        "certifications": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "issuer": {"type": "string"},
+                    "year": {"type": "integer"},
+                },
+                "required": ["name"],
+            },
+        },
+    },
+    "required": ["name", "skills", "projects", "certifications"],
+}
+
+
+EXTRACT_PROFILE_TOOL = ToolSpec(
+    name="extract_profile",
+    description=(
         "Extract a complete structured professional profile from a resume or LinkedIn export. "
         "Call this tool exactly once with all extracted information."
     ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string", "description": "Full name"},
-            "email": {"type": "string"},
-            "location": {"type": "string", "description": "City, Country or similar"},
-            "title": {"type": "string", "description": "Current or most recent job title"},
-            "total_years_exp": {
-                "type": "number",
-                "description": "Best estimate of total professional years. Infer from career start date if not explicit.",
-            },
-            "summary": {
-                "type": "string",
-                "description": "2–3 sentence professional summary written in third person.",
-            },
-            "skills": {
-                "type": "array",
-                "description": "Every distinct technical skill mentioned or clearly implied. One entry per skill.",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string",
-                            "description": "Canonical skill name. Map variants: 'JS'→'JavaScript', 'ReactJS'→'React', etc.",
-                        },
-                        "proficiency": {
-                            "type": "string",
-                            "enum": ["novice", "intermediate", "expert"],
-                            "description": (
-                                "Use these rules strictly:\n"
-                                "  expert: 4+ years OR led/architected/principal/senior mention OR built production systems at scale\n"
-                                "  intermediate: 1.5–4 years OR 'experience with' OR worked on real projects\n"
-                                "  novice: <1.5 years OR 'familiar with' / 'learning' / 'exposure to' / side-project only"
-                            ),
-                        },
-                        "years": {
-                            "type": "number",
-                            "description": "Years of experience. Estimate from dates if not stated.",
-                        },
-                        "evidence": {
-                            "type": "string",
-                            "description": (
-                                "Verbatim or close-paraphrase from the resume that justifies this skill and proficiency. "
-                                "Keep it to 1–2 sentences."
-                            ),
-                        },
-                        "confidence": {
-                            "type": "number",
-                            "description": (
-                                "0.0–1.0. Use 0.95 if explicitly stated with years. "
-                                "0.80 if clearly present but years unstated. "
-                                "0.65 if inferred from project context."
-                            ),
-                        },
-                    },
-                    "required": ["name", "proficiency", "confidence"],
-                },
-            },
-            "projects": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "role": {"type": "string"},
-                        "description": {
-                            "type": "string",
-                            "description": "2–4 sentences: what was built, technologies used, scale/impact.",
-                        },
-                        "start_date": {"type": "string", "description": "YYYY-MM or YYYY"},
-                        "end_date": {
-                            "type": "string",
-                            "description": "YYYY-MM, YYYY, or null if current",
-                        },
-                        "technologies": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "Technologies explicitly mentioned for this project.",
-                        },
-                    },
-                    "required": ["name", "description", "technologies"],
-                },
-            },
-            "certifications": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "issuer": {"type": "string"},
-                        "year": {"type": "integer"},
-                    },
-                    "required": ["name"],
-                },
-            },
-        },
-        "required": ["name", "skills", "projects", "certifications"],
-    },
-}
+    input_schema=_EXTRACT_PROFILE_INPUT_SCHEMA,
+)
+
 
 # ─── System prompt ────────────────────────────────────────────────────────────
-# Marked for prompt caching — this block is large and static.
-# The canonical skill list is injected at call time via build_system_prompt().
+# This block is large and static — the manager applies prompt caching when
+# the provider supports it (e.g. Anthropic). The canonical skill list is
+# injected at call time via build_system_prompt().
 
 _SYSTEM_BASE = """\
 You are a senior technical recruiter and software engineer. Your task is to extract \
@@ -165,26 +173,19 @@ Call the `extract_profile` tool exactly once with the complete extracted profile
 """
 
 
-def build_system_prompt(canonical_skills: list[str] | None = None) -> list[dict]:
-    """
-    Returns the messages-API system block with prompt caching enabled.
-    Injecting canonical_skills into the system prompt improves normalization
-    without inflating every user message.
+def build_system_prompt(canonical_skills: list[str] | None = None) -> str:
+    """Return the provider-neutral system prompt.
+
+    Injecting canonical_skills here improves normalization without inflating
+    every user message. The caller passes `cache_system_prompt=True` on the
+    ChatRequest — providers that support prompt caching (Anthropic) cache this
+    block; others ignore the hint.
     """
     content = _SYSTEM_BASE
     if canonical_skills:
         skill_list = ", ".join(canonical_skills[:120])  # cap at 120 to keep tokens reasonable
         content += f"\n\n## Canonical Skill Names (normalize to these where possible)\n{skill_list}"
-
-    return [
-        {
-            "type": "text",
-            "text": content,
-            # Prompt caching — this large static block is cached after the first call.
-            # Saves ~80% of input tokens on repeated extractions during the demo.
-            "cache_control": {"type": "ephemeral"},
-        }
-    ]
+    return content
 
 
 def build_user_message(raw_text: str) -> str:

@@ -4,9 +4,11 @@ Stage 1 — Deterministic rules (free, instant):
   Hard-coded parent/sibling relationships that are always true.
   e.g. Next.js → React (0.97), React → JavaScript (0.88).
 
-Stage 2 — Claude Haiku (fast, cheap):
+Stage 2 — LLM call (fast, cheap):
   Context-aware domain inferences rules can't capture.
   e.g. Stripe + Node.js + payment project → "Payment Integration" domain.
+  Routed through task='inference' — defaults to a fast Haiku-class model
+  but is fully provider-agnostic (any chat provider works).
 
 Both stages skip skills already in the extracted set.
 Results are tagged source='inferred' with confidence scores and reasoning.
@@ -123,46 +125,41 @@ def _deterministic_inferences(extracted: list[ExtractedSkill]) -> list[dict]:
 # ─── Stage 2: Claude Haiku ────────────────────────────────────────────────────
 
 
-async def _haiku_inferences(
+async def _llm_inferences(
     extracted: list[ExtractedSkill],
     already_inferred_names: set[str],
 ) -> list[dict]:
-    """Run Haiku to catch domain/contextual inferences deterministic rules miss."""
-    from app.ai.client import get_client
+    """Run the configured inference model to catch domain/contextual inferences
+    that deterministic rules miss. Routed via task='inference'."""
     from app.ai.prompts.infer_skills import (
         INFER_SKILLS_TOOL,
         INFER_SYSTEM_PROMPT,
         build_infer_message,
     )
-    from app.core.config import settings
+    from app.ai.providers import ChatRequest, ai_manager
 
-    # Only worth calling Haiku if there are meaningful skills to reason over
     if len(extracted) < 2:
         return []
 
     already = {s.name.lower() for s in extracted} | {n.lower() for n in already_inferred_names}
 
-    client = get_client()
     user_msg = build_infer_message(
         [{"name": s.name, "proficiency": s.proficiency, "years": s.years} for s in extracted],
         already,
     )
 
-    response = await client.messages.create(
-        model=settings.light_model,
-        max_tokens=1024,
+    request = ChatRequest(
         system=INFER_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
         tools=[INFER_SKILLS_TOOL],
-        tool_choice={"type": "any"},
+        tool_choice="any",
+        max_tokens=1024,
     )
-
-    tool_block = next((b for b in response.content if b.type == "tool_use"), None)
-    if tool_block is None:
+    resp = await ai_manager.chat(request, task="inference")
+    call = resp.first_tool_call()
+    if call is None:
         return []
-
-    raw = tool_block.input
-    candidates = raw.get("inferred", []) if isinstance(raw, dict) else []
+    candidates = call.arguments.get("inferred", []) if isinstance(call.arguments, dict) else []
 
     # Filter out anything already present
     results = []
@@ -195,13 +192,13 @@ async def run_inference(extracted_skills: list[ExtractedSkill]) -> list[dict]:
     stage1 = _deterministic_inferences(extracted_skills)
     log.info("Inference stage 1: %d rules-based inferences", len(stage1))
 
-    # Stage 2: Haiku LLM call
+    # Stage 2: LLM call (routed via task='inference')
     already_from_stage1 = {r["name"].lower() for r in stage1}
     try:
-        stage2 = await _haiku_inferences(extracted_skills, already_from_stage1)
-        log.info("Inference stage 2: %d Haiku inferences", len(stage2))
+        stage2 = await _llm_inferences(extracted_skills, already_from_stage1)
+        log.info("Inference stage 2: %d LLM inferences", len(stage2))
     except Exception as exc:
-        log.warning("Haiku inference failed, using rules-only: %s", exc)
+        log.warning("LLM inference failed, using rules-only: %s", exc)
         stage2 = []
 
     all_inferred = stage1 + stage2

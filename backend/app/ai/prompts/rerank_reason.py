@@ -1,7 +1,7 @@
-"""Re-rank + reasoning prompt — Claude Sonnet scores and explains each candidate.
+"""Re-rank + reasoning prompt (provider-neutral).
 
-This is the demo money-shot. The reasoning string is what judges will read and
-what makes the product feel genuinely intelligent vs. a keyword search.
+The reasoning string is what HR sees in the search UI — it's the product's
+main signal of genuine intelligence vs. keyword search.
 
 Design requirements:
   - Specific: cite actual years, project names, and technologies from the profile
@@ -9,65 +9,75 @@ Design requirements:
   - Varied: each reasoning is unique to that candidate
   - Scored: 0–100 with principled deductions for gaps
   - Fast: single API call for all candidates (batched)
+
+Routed through the "rerank" task — typically the highest-quality available model.
 """
 
-RERANK_TOOL: dict = {
-    "name": "rank_candidates",
-    "description": "Rank and explain a list of candidate profiles against an HR search query.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "ranked": {
-                "type": "array",
-                "description": "Candidates in descending order of match quality.",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "employee_id": {
-                            "type": "string",
-                            "description": "Exactly as provided in input — do not modify.",
-                        },
-                        "match_score": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 100,
-                            "description": (
-                                "Score 0–100. Start at 100, deduct:\n"
-                                "  -15  per explicitly required skill that's missing\n"
-                                "  -10  if years requirement not met\n"
-                                "  -8   if seniority is lower than requested\n"
-                                "  -5   if location doesn't match\n"
-                                "  -5   if currently allocated when availability was required\n"
-                                "  +0–5 bonus for exceptional relevant experience beyond the ask"
-                            ),
-                        },
-                        "reasoning": {
-                            "type": "string",
-                            "description": (
-                                "1–2 sentences. Must be specific to this candidate — cite years, project names, "
-                                "or technologies from their profile. Format: 'Strong match: [specific evidence]. [one gap or bonus if applicable].'"
-                                "\nExample: 'Expert in React (5 yrs), led 2 real-time apps using Socket.IO — "
-                                "exactly what this role needs. Currently unallocated and available immediately.'"
-                            ),
-                        },
-                        "strengths": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "2–4 bullet points of specific matching evidence. Be concrete.",
-                        },
-                        "gaps": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "0–3 specific gaps or caveats. Empty array if no meaningful gaps.",
-                        },
+from __future__ import annotations
+
+from app.ai.providers import ToolSpec
+
+_RERANK_INPUT_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "ranked": {
+            "type": "array",
+            "description": "Candidates in descending order of match quality.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "employee_id": {
+                        "type": "string",
+                        "description": "Exactly as provided in input — do not modify.",
                     },
-                    "required": ["employee_id", "match_score", "reasoning", "strengths", "gaps"],
+                    "match_score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": (
+                            "Score 0–100. Start at 100, deduct:\n"
+                            "  -15  per explicitly required skill that's missing\n"
+                            "  -10  if years requirement not met\n"
+                            "  -8   if seniority is lower than requested\n"
+                            "  -5   if location doesn't match\n"
+                            "  -5   if currently allocated when availability was required\n"
+                            "  +0–5 bonus for exceptional relevant experience beyond the ask"
+                        ),
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": (
+                            "1–2 sentences. Must be specific to this candidate — cite years, project names, "
+                            "or technologies from their profile. Format: 'Strong match: [specific evidence]. [one gap or bonus if applicable].'"
+                            "\nExample: 'Expert in React (5 yrs), led 2 real-time apps using Socket.IO — "
+                            "exactly what this role needs. Currently unallocated and available immediately.'"
+                        ),
+                    },
+                    "strengths": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "2–4 bullet points of specific matching evidence. Be concrete.",
+                    },
+                    "gaps": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "0–3 specific gaps or caveats. Empty array if no meaningful gaps.",
+                    },
                 },
-            }
-        },
-        "required": ["ranked"],
+                "required": ["employee_id", "match_score", "reasoning", "strengths", "gaps"],
+            },
+        }
     },
+    "required": ["ranked"],
 }
+
+
+RERANK_TOOL = ToolSpec(
+    name="rank_candidates",
+    description="Rank and explain a list of candidate profiles against an HR search query.",
+    input_schema=_RERANK_INPUT_SCHEMA,
+)
+
 
 RERANK_SYSTEM = """\
 You are a senior technical recruiter evaluating candidates for an HR search.

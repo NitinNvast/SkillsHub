@@ -1,15 +1,17 @@
-"""Search pipeline — full implementation.
+"""Search pipeline — full implementation (provider-agnostic).
 
 embed_employee():        index a profile into pgvector (called post-ingestion).
 run_semantic_search():   end-to-end NL search with LLM re-rank + reasoning.
 
 Full search flow:
-  1. Haiku parses NL query → ParsedQuery (filters + semantic_text)
-  2. Voyage embeds semantic_text
+  1. task='parsing' → NL query parsed into ParsedQuery (filters + semantic_text)
+  2. Embedding provider embeds semantic_text
   3. pgvector pre-filtered KNN retrieval (top-20)
   4. Load full profiles for all 20 candidates
-  5. Sonnet re-ranks top-20 → scored + reasoned results (single LLM call)
+  5. task='rerank' → all candidates scored + reasoned in a single LLM call
   6. Return top-K (default 8)
+
+All LLM and embedding calls flow through `app.ai.providers.ai_manager`.
 """
 
 from __future__ import annotations
@@ -30,8 +32,9 @@ log = logging.getLogger(__name__)
 
 
 async def embed_employee(session: AsyncSession, employee_id: UUID) -> None:
-    """Build profile summary, embed via Voyage, upsert into employee_embeddings."""
-    from app.ai.embeddings import embed_single
+    """Build profile summary, embed via the configured embedding provider,
+    upsert into employee_embeddings."""
+    from app.ai.providers import ai_manager
     from app.db.repos.embeddings import render_profile_summary, upsert_employee_embedding
 
     result = await session.execute(
@@ -53,7 +56,7 @@ async def embed_employee(session: AsyncSession, employee_id: UUID) -> None:
         log.warning("embed_employee: empty summary for %s, skipping", employee_id)
         return
 
-    vector = await embed_single(summary_text, input_type="document")
+    vector = await ai_manager.embed_single(summary_text, input_type="document")
     await upsert_employee_embedding(session, employee_id, vector, summary_text)
     log.info("Embedding stored for employee %s", employee_id)
 
@@ -61,35 +64,42 @@ async def embed_employee(session: AsyncSession, employee_id: UUID) -> None:
 # ─── Step 1: Parse NL query ───────────────────────────────────────────────────
 
 
+_PARSE_FALLBACK: dict = {
+    "semantic_text": "",  # filled at call site
+    "required_skills": [],
+    "min_years_per_skill": {},
+    "availability": [],
+}
+
+
 async def _parse_query(query: str) -> dict:
-    from app.ai.client import get_client
     from app.ai.prompts.parse_query import (
         PARSE_QUERY_SYSTEM,
         PARSE_QUERY_TOOL,
         build_parse_message,
     )
-    from app.core.config import settings
+    from app.ai.providers import ChatRequest, ai_manager
+    from app.ai.providers.base import ProviderError
 
-    client = get_client()
-    response = await client.messages.create(
-        model=settings.light_model,
-        max_tokens=512,
+    request = ChatRequest(
         system=PARSE_QUERY_SYSTEM,
         messages=[{"role": "user", "content": build_parse_message(query)}],
         tools=[PARSE_QUERY_TOOL],
-        tool_choice={"type": "any"},
+        tool_choice="any",
+        max_tokens=512,
     )
-    tool_block = next((b for b in response.content if b.type == "tool_use"), None)
-    if tool_block is None:
-        # Graceful fallback: use query as-is
-        return {
-            "semantic_text": query,
-            "required_skills": [],
-            "min_years_per_skill": {},
-            "availability": [],
-        }
+    try:
+        resp = await ai_manager.chat(request, task="parsing")
+    except ProviderError as exc:
+        log.warning("Query parsing failed (%s) — using raw query as semantic text", exc)
+        return {**_PARSE_FALLBACK, "semantic_text": query}
 
-    raw = tool_block.input if isinstance(tool_block.input, dict) else {}
+    call = resp.first_tool_call()
+    if call is None:
+        log.warning("Query parsing returned no tool call — using raw query as semantic text")
+        return {**_PARSE_FALLBACK, "semantic_text": query}
+
+    raw = call.arguments if isinstance(call.arguments, dict) else {}
     return {
         "semantic_text": raw.get("semantic_text", query),
         "required_skills": raw.get("required_skills", []),
@@ -108,33 +118,32 @@ async def _rerank_candidates(
     candidates: list[dict],
     limit: int,
 ) -> list[dict]:
-    """Single Sonnet call for all candidates — scores + plain-English reasoning."""
+    """Single LLM call for all candidates — scores + plain-English reasoning.
+    Routed via task='rerank' — defaults to the highest-quality configured model."""
     if not candidates:
         return []
 
-    from app.ai.client import get_client
     from app.ai.prompts.rerank_reason import (
         RERANK_SYSTEM,
         RERANK_TOOL,
         build_rerank_message,
     )
-    from app.core.config import settings
+    from app.ai.providers import ChatRequest, ai_manager
 
-    client = get_client()
     user_msg = build_rerank_message(query, candidates)
-
-    response = await client.messages.create(
-        model=settings.rerank_model,
-        max_tokens=4096,
+    request = ChatRequest(
         system=RERANK_SYSTEM,
         messages=[{"role": "user", "content": user_msg}],
         tools=[RERANK_TOOL],
-        tool_choice={"type": "any"},
+        tool_choice="any",
+        max_tokens=4096,
     )
+    from app.ai.providers.base import ProviderError
 
-    tool_block = next((b for b in response.content if b.type == "tool_use"), None)
-    if tool_block is None:
-        log.warning("Sonnet re-rank returned no tool call — falling back to similarity order")
+    try:
+        resp = await ai_manager.chat(request, task="rerank")
+    except ProviderError as exc:
+        log.warning("Re-rank failed (%s) — falling back to similarity order", exc)
         return [
             {
                 **c,
@@ -146,7 +155,21 @@ async def _rerank_candidates(
             for c in candidates[:limit]
         ]
 
-    raw = tool_block.input if isinstance(tool_block.input, dict) else {}
+    call = resp.first_tool_call()
+    if call is None:
+        log.warning("Re-rank returned no tool call — falling back to similarity order")
+        return [
+            {
+                **c,
+                "match_score": int(c.get("similarity", 0.5) * 100),
+                "reasoning": "Matched based on semantic similarity.",
+                "strengths": [],
+                "gaps": [],
+            }
+            for c in candidates[:limit]
+        ]
+
+    raw = call.arguments if isinstance(call.arguments, dict) else {}
     ranked_raw = raw.get("ranked", [])
 
     # Build id → result map, merge with candidate metadata
@@ -186,7 +209,7 @@ async def run_semantic_search(
           "total_candidates_retrieved": int
         }
     """
-    from app.ai.embeddings import embed_single
+    from app.ai.providers import ai_manager
     from app.db.repos.embeddings import (
         load_employee_for_rerank,
         render_profile_summary,
@@ -204,7 +227,7 @@ async def run_semantic_search(
     )
 
     # ── 2. Embed the semantic text ─────────────────────────────
-    query_vector = await embed_single(parsed["semantic_text"], input_type="query")
+    query_vector = await ai_manager.embed_single(parsed["semantic_text"], input_type="query")
 
     # ── 3. pgvector pre-filtered retrieval ────────────────────
     from app.core.config import settings

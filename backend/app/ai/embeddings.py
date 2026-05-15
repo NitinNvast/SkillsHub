@@ -1,28 +1,26 @@
-"""Voyage AI embedding client."""
+"""DEPRECATED — thin shim over `app.ai.providers.ai_manager`.
+
+Existing code (e.g. `app/seed/seed_employees.py`) imports embed_single /
+embed_texts from here. New code should call `ai_manager.embed(...)` directly.
+"""
 
 from __future__ import annotations
 
-import voyageai
+from typing import Literal
 
-from app.core.config import settings
-
-_client: voyageai.AsyncClient | None = None
+from app.ai.providers import ai_manager
 
 
-def get_embed_client() -> voyageai.AsyncClient:
-    global _client
-    if _client is None:
-        _client = voyageai.AsyncClient(api_key=settings.voyage_api_key)
-    return _client
-
-
-async def embed_texts(texts: list[str], input_type: str = "document") -> list[list[float]]:
+async def embed_texts(
+    texts: list[str],
+    input_type: Literal["document", "query"] = "document",
+) -> list[list[float]]:
     """Embed a batch of texts. input_type: 'document' for indexing, 'query' for search."""
-    client = get_embed_client()
-    result = await client.embed(texts, model=settings.embedding_model, input_type=input_type)
-    return result.embeddings
+    return await ai_manager.embed(texts, input_type=input_type)
 
 
-async def embed_single(text: str, input_type: str = "document") -> list[float]:
-    vecs = await embed_texts([text], input_type=input_type)
-    return vecs[0]
+async def embed_single(
+    text: str,
+    input_type: Literal["document", "query"] = "document",
+) -> list[float]:
+    return await ai_manager.embed_single(text, input_type=input_type)
