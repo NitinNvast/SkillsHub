@@ -51,7 +51,7 @@ function SidebarContent({
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 active
                   ? "bg-[var(--color-primary)] text-white shadow-sm"
-                  : "text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)] hover:text-white",
+                  : "text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)]",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -82,7 +82,7 @@ function SidebarContent({
         <ThemeToggle />
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)] hover:text-white transition-colors cursor-pointer"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)] transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Sign out

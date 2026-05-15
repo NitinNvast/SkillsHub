@@ -41,7 +41,7 @@ export default function SearchPage() {
       </div>
 
       {/* Search box */}
-      <div className="glass relative rounded-xl border-2 border-[var(--color-primary)] bg-[var(--color-card)] shadow-lg shadow-indigo-500/10 focus-within:shadow-md focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1 transition-all">
+      <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/25 transition-all duration-150">
         <textarea
           ref={inputRef}
           value={query}

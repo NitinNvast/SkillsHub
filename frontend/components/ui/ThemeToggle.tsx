@@ -61,14 +61,14 @@ export function ThemeToggle({ className, variant = "sidebar" }: Props) {
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm",
-        "text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)] hover:text-white",
+        "text-[var(--color-sidebar-foreground)] hover:bg-[var(--color-sidebar-muted)]",
         "transition-colors cursor-pointer",
         className,
       )}
     >
       {isDark
         ? <Sun className="h-4 w-4 text-amber-400 shrink-0" />
-        : <Moon className="h-4 w-4 text-blue-300 shrink-0" />}
+        : <Moon className="h-4 w-4 text-indigo-500 shrink-0" />}
       {isDark ? "Light mode" : "Dark mode"}
     </button>
   );

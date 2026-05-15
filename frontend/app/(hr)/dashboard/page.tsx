@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useEffect, useState } from "react";
 import { Users, ClipboardList, Search, TrendingUp, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { useEmployees, useReviewQueue, useSkillGaps } from "@/lib/api/hooks";
@@ -57,14 +58,12 @@ export default function DashboardPage() {
             <StatCard
               icon={<Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
               label="Total Employees" value={total}
-              gradient="from-blue-500 to-blue-600"
               bg="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20"
               accent="border-l-blue-500"
             />
             <StatCard
               icon={<CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
               label="Available Now" value={available}
-              gradient="from-emerald-500 to-emerald-600"
               bg="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20"
               accent="border-l-emerald-500"
               sub={total ? `${Math.round((available / total) * 100)}% of team` : undefined}
@@ -72,14 +71,12 @@ export default function DashboardPage() {
             <StatCard
               icon={<Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />}
               label="Partially Free" value={partial}
-              gradient="from-amber-500 to-amber-600"
               bg="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20"
               accent="border-l-amber-500"
             />
             <StatCard
               icon={<ClipboardList className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
               label="Pending Reviews" value={pending}
-              gradient="from-purple-500 to-purple-600"
               bg="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20"
               accent="border-l-purple-500"
               href="/review"
@@ -150,7 +147,7 @@ export default function DashboardPage() {
               {recentQueue.map((item) => (
                 <li key={item.upload_id}>
                   <Link
-                    href={`/review/${item.upload_id}`}
+                    href={`/review/${item.upload_id}` as Route}
                     className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-[var(--color-muted)] transition-colors group"
                   >
                     <div className="min-w-0">
@@ -177,7 +174,7 @@ export default function DashboardPage() {
         <div className="mt-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm animate-fade-up" style={{ animationDelay: "220ms" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               </div>
               <h2 className="text-sm font-semibold">Skill Gap Analysis</h2>
@@ -191,14 +188,28 @@ export default function DashboardPage() {
               <div
                 key={g.name}
                 className={cn(
-                  "rounded-xl border p-3 text-xs hover:scale-105 transition-transform cursor-default",
-                  g.gap_severity === "critical" && "border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800",
-                  g.gap_severity === "warning"  && "border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800",
-                  g.gap_severity === "healthy"  && "border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800",
+                  "rounded-xl border border-[var(--color-border)] border-l-4 bg-[var(--color-card)] p-3",
+                  "hover:shadow-md transition-all duration-200 cursor-default",
+                  g.gap_severity === "critical" && "border-l-red-500",
+                  g.gap_severity === "warning"  && "border-l-amber-500",
+                  g.gap_severity === "healthy"  && "border-l-emerald-500",
                 )}
                 style={{ animationDelay: `${i * 40}ms` }}
               >
-                <p className="font-semibold truncate">{g.name}</p>
+                <div className={cn(
+                  "inline-flex h-6 w-6 items-center justify-center rounded-md mb-2",
+                  g.gap_severity === "critical" && "bg-red-100 dark:bg-red-900/30",
+                  g.gap_severity === "warning"  && "bg-amber-100 dark:bg-amber-900/30",
+                  g.gap_severity === "healthy"  && "bg-emerald-100 dark:bg-emerald-900/30",
+                )}>
+                  <span className={cn(
+                    "h-2 w-2 rounded-full",
+                    g.gap_severity === "critical" && "bg-red-500",
+                    g.gap_severity === "warning"  && "bg-amber-500",
+                    g.gap_severity === "healthy"  && "bg-emerald-500",
+                  )} />
+                </div>
+                <p className="text-xs font-semibold truncate text-[var(--color-foreground)]">{g.name}</p>
                 <p className={cn(
                   "text-[10px] mt-1",
                   g.gap_severity === "critical" && "text-red-600 dark:text-red-400",
@@ -247,16 +258,16 @@ export default function DashboardPage() {
 }
 
 function StatCard({
-  icon, label, value, bg, accent, gradient, sub, href,
+  icon, label, value, bg, accent, sub, href,
 }: {
   icon: React.ReactNode; label: string; value: number;
-  bg: string; accent: string; gradient: string;
-  sub?: string; href?: string;
+  bg: string; accent: string;
+  sub?: string; href?: Route;
 }) {
   const inner = (
     <div className={cn(
-      "rounded-xl border border-[var(--color-border)] border-l-4 bg-[var(--color-card)] p-4",
-      "hover:shadow-lg transition-all duration-200 shadow-sm group cursor-default",
+      "rounded-xl border border-[var(--color-border)] border-l-4 bg-[var(--color-card)] p-4 h-full",
+      "hover:shadow-lg transition-all duration-200 shadow-sm group cursor-default min-h-[130px]",
       accent,
     )}>
       <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl mb-3", bg)}>
@@ -268,8 +279,8 @@ function StatCard({
     </div>
   );
   return href ? (
-    <Link href={href} className="block hover:scale-[1.02] transition-transform duration-150">{inner}</Link>
+    <Link href={href} className="block hover:scale-[1.02] transition-transform duration-150 h-full">{inner}</Link>
   ) : (
-    <div className="hover:scale-[1.02] transition-transform duration-150">{inner}</div>
+    <div className="hover:scale-[1.02] transition-transform duration-150 h-full">{inner}</div>
   );
 }

@@ -40,7 +40,7 @@ export default function EmployeesPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Filter by name, skill, or location…"
-          className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition shadow-sm"
+          className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] pl-9 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-500 transition-all duration-150 shadow-sm"
         />
       </div>
 
