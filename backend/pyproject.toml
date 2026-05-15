@@ -1,0 +1,52 @@
+[project]
+name = "skillshub-backend"
+version = "0.1.0"
+description = "SkillsHub — AI-powered skills intelligence backend"
+requires-python = ">=3.12"
+dependencies = [
+    # Web framework
+    "fastapi[standard]>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.20",
+    # Database
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "pgvector>=0.3.6",
+    # Models / validation
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    # Auth
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt==4.0.1",  # passlib pin (avoids the deprecation noise on 4.1+)
+    # AI providers
+    "anthropic>=0.40.0",
+    "voyageai>=0.3.0",
+    # Resume parsing
+    "pypdf>=5.1.0",
+    # Misc
+    "structlog>=24.4.0",
+    "httpx>=0.28.0",
+    "tenacity>=9.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "ipython>=8.30.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
