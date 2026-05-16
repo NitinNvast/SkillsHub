@@ -40,24 +40,24 @@
 **Left side — Hard Problem #1: Smart Ingestion**
 ```
 PDF Resume → pypdf extract
-         → Claude Sonnet (tool_use)
+         → Groq llama-3.3-70b-versatile (tool_use)
          → StructuredProfile JSON
               • Skills + proficiency + evidence
               • Projects + technologies
               • Certifications
          → Skill Inference Engine
               • 40+ deterministic rules (Next.js → React)
-              • Claude Haiku contextual inferences
+              • Groq llama-3.1-8b-instant contextual inferences
          → Review Queue → HR Approval
 ```
 
 **Right side — Hard Problem #2: Semantic Search**
 ```
-NL Query → Claude Haiku (parse + filter)
+NL Query → Groq llama-3.3-70b-versatile (parse + filter)
          → Voyage AI embedding (query vector)
          → pgvector HNSW retrieval (top 20)
          → Full profile load
-         → Claude Sonnet re-rank
+         → Groq llama-3.3-70b-versatile re-rank
               • Match score 0-100
               • Plain-English reasoning
               • Strengths + gaps per candidate
@@ -117,7 +117,7 @@ NL Query → Claude Haiku (parse + filter)
 
 | Layer | Choice | Why |
 |---|---|---|
-| LLM | Claude Sonnet 4.6 + Haiku 4.5 | Tool use = structured output, no JSON parsing hacks |
+| LLM | Groq llama-3.3-70b-versatile + llama-3.1-8b-instant | Tool use = structured output, no JSON parsing hacks |
 | Embeddings | Voyage AI voyage-3-large | Best retrieval quality for technical text |
 | Vector DB | PostgreSQL + pgvector HNSW | No extra infra, ACID guarantees, hybrid SQL+vector |
 | Backend | FastAPI + SQLAlchemy async | Async throughout, type-safe, fast iteration |
