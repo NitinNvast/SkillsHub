@@ -28,7 +28,9 @@ export function ThemeToggle({ className, variant = "sidebar" }: Props) {
           className,
         )}
       >
-        {isDark ? <Sun className="h-3.5 w-3.5 text-amber-500" /> : <Moon className="h-3.5 w-3.5 text-indigo-500" />}
+        {isDark
+          ? <Sun key="sun-float" className="theme-icon-enter h-3.5 w-3.5 text-amber-500" />
+          : <Moon key="moon-float" className="theme-icon-enter h-3.5 w-3.5 text-indigo-500" />}
         {isDark ? "Light" : "Dark"}
       </button>
     );
@@ -48,8 +50,8 @@ export function ThemeToggle({ className, variant = "sidebar" }: Props) {
         )}
       >
         {isDark
-          ? <Sun className="h-4 w-4 text-amber-500" />
-          : <Moon className="h-4 w-4 text-indigo-500" />}
+          ? <Sun key="sun-inline" className="theme-icon-enter h-4 w-4 text-amber-500" />
+          : <Moon key="moon-inline" className="theme-icon-enter h-4 w-4 text-indigo-500" />}
       </button>
     );
   }
@@ -67,8 +69,8 @@ export function ThemeToggle({ className, variant = "sidebar" }: Props) {
       )}
     >
       {isDark
-        ? <Sun className="h-4 w-4 text-amber-400 shrink-0" />
-        : <Moon className="h-4 w-4 text-indigo-500 shrink-0" />}
+        ? <Sun key="sun-sidebar" className="theme-icon-enter h-4 w-4 text-amber-400 shrink-0" />
+        : <Moon key="moon-sidebar" className="theme-icon-enter h-4 w-4 text-indigo-500 shrink-0" />}
       {isDark ? "Light mode" : "Dark mode"}
     </button>
   );

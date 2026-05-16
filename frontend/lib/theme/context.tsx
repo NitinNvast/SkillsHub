@@ -31,7 +31,13 @@ function getSystemTheme(): ResolvedTheme {
 
 function applyTheme(theme: Theme): ResolvedTheme {
   const resolved = theme === "system" ? getSystemTheme() : theme;
+  // Suppress all CSS transitions for the frame that applies the new theme class,
+  // then re-enable them. This prevents overlapping color transitions on rapid clicks.
+  document.documentElement.classList.add("no-transition");
   document.documentElement.classList.toggle("dark", resolved === "dark");
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => document.documentElement.classList.remove("no-transition"))
+  );
   return resolved;
 }
 

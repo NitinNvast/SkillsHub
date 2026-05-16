@@ -37,18 +37,7 @@
   --color-sidebar-border: hsl(215 20% 18%);
 }
 
-/* ── Smooth theme transitions ── */
-*,
-*::before,
-*::after {
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.1s ease,
-    box-shadow 0.2s ease;
-}
-
-/* Exclude transitions from elements where they'd feel laggy */
+/* ── Interactive element transitions (hover/focus only) ── */
 button,
 a,
 input,
@@ -61,6 +50,19 @@ textarea {
     opacity 0.15s ease,
     transform 0.15s ease;
 }
+
+/* Instant theme swap — suppresses color transitions during switch to prevent flicker */
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
+}
+
+/* Theme toggle icon animations */
+@keyframes iconRotateIn  { from { opacity: 0; transform: rotate(-90deg) scale(0.5); } to { opacity: 1; transform: rotate(0deg) scale(1); } }
+@keyframes iconRotateOut { from { opacity: 1; transform: rotate(0deg) scale(1); }    to { opacity: 0; transform: rotate(90deg) scale(0.5); } }
+.theme-icon-enter { animation: iconRotateIn 0.25s ease forwards; }
+.theme-icon-exit  { animation: iconRotateOut 0.2s ease forwards; }
 
 body {
   background: var(--color-background);
