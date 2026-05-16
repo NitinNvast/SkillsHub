@@ -35,8 +35,10 @@ dependencies = [
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.8.0",
     "ipython>=8.30.0",
+    "httpx>=0.28.0",
 ]
 
 [tool.ruff]
@@ -50,3 +52,18 @@ ignore = ["E501"]  # line length handled by formatter
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+addopts = "--tb=short -q"
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/seed/*", "app/db/migrations/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING",
+    "pass$",
+]
