@@ -12,7 +12,7 @@ export interface Skill {
   category: string;
   proficiency: "novice" | "intermediate" | "expert";
   years: number | null;
-  source: "extracted" | "inferred" | "manual";
+  source: "extracted" | "inferred" | "manual" | "github";
   confidence: number | null;
   evidence: string | null;
 }

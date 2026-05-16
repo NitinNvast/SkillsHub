@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Briefcase, Calendar, FolderOpen, Award, Github } from "lucide-react";
+import { ArrowLeft, MapPin, Briefcase, Calendar, FolderOpen, Award, GithubIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEmployee, useGitHubSync } from "@/lib/api/hooks";
 import { SkillChip } from "@/components/skills/SkillChip";
@@ -149,6 +149,7 @@ export default function EmployeeProfilePage() {
                         proficiency={s.proficiency}
                         years={s.years}
                         inferred={s.source === "inferred"}
+                        fromGithub={s.source === "github"}
                       />
                     ))}
                 </div>
@@ -221,11 +222,11 @@ export default function EmployeeProfilePage() {
       {/* GitHub Sync */}
       <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
         <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
-          <Github className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+          <GithubIcon className="h-4 w-4 text-[var(--color-muted-foreground)]" />
           Sync GitHub Skills
         </h2>
         <p className="text-xs text-[var(--color-muted-foreground)] mb-3">
-          Import language proficiency from public repositories.
+          Infer active skills from public repos — languages, frameworks, and tools from recent commits.
         </p>
         <form onSubmit={handleGitHubSync} className="flex gap-2">
           <input
@@ -242,7 +243,7 @@ export default function EmployeeProfilePage() {
             {syncingGitHub ? (
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current/30 border-t-current" />
             ) : (
-              <Github className="h-3.5 w-3.5" />
+              <GithubIcon className="h-3.5 w-3.5" />
             )}
             Sync
           </button>
