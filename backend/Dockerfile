@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Cache dep install separately from source
-COPY pyproject.toml ./
-RUN uv sync --no-cache
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-cache
 
 # App code is bind-mounted in dev (see docker-compose.yml), but copied in for prod builds
 COPY . .
