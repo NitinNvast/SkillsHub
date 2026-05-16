@@ -23,6 +23,8 @@ env/
 .coverage
 coverage.xml
 htmlcov/
+frontend/coverage/
+backend/htmlcov/
 
 # Database files (local dev)
 *.db
