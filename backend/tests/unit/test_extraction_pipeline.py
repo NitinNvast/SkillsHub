@@ -15,8 +15,8 @@ def _make_chat_response(tool_name: str, arguments: dict) -> ChatResponse:
         text="",
         tool_calls=[ToolCall(name=tool_name, arguments=arguments, id="tc-1")],
         usage=Usage(input_tokens=100, output_tokens=50),
-        model="claude-sonnet-4-6",
-        provider="anthropic",
+        model="llama-3.3-70b-versatile",
+        provider="groq",
         finish_reason="tool_use",
     )
 
@@ -26,8 +26,8 @@ def _make_empty_response() -> ChatResponse:
         text="I cannot extract.",
         tool_calls=[],
         usage=Usage(input_tokens=50, output_tokens=20),
-        model="claude-sonnet-4-6",
-        provider="anthropic",
+        model="llama-3.3-70b-versatile",
+        provider="groq",
         finish_reason="end_turn",
     )
 

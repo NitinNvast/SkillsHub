@@ -25,8 +25,8 @@ class ProficiencyLevel(str, Enum):
 
 
 class SkillSource(str, Enum):
-    EXTRACTED = "extracted"  # Pulled directly from resume by Claude
-    INFERRED = "inferred"  # Derived (e.g., Next.js→React) by Haiku
+    EXTRACTED = "extracted"  # Pulled directly from resume by LLM extraction
+    INFERRED = "inferred"  # Derived (e.g., Next.js→React) by LLM inference
     MANUAL = "manual"  # Added/edited by employee or HR
     GITHUB = "github"  # Derived from public GitHub repository analysis
 

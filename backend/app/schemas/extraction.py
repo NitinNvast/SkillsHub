@@ -1,6 +1,6 @@
 """Pydantic models for the LLM extraction output (StructuredProfile).
 
-These are the shapes Claude returns via tool_use. They are NOT the same as
+These are the shapes the LLM returns via tool_use. They are NOT the same as
 the DB models — they're the raw AI output before normalization and persistence.
 """
 

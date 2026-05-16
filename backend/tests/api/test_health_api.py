@@ -26,10 +26,10 @@ class TestHealthEndpoint:
             patch("app.ai.providers.ai_manager") as mock_ai,
         ):
             mock_ai.describe_routes.return_value = {
-                "extraction": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+                "extraction": {"provider": "groq", "model": "llama-3.3-70b-versatile"},
                 "embedding": {"provider": "voyage", "model": "voyage-3-large"},
             }
-            mock_ai.health = AsyncMock(return_value={"anthropic": True, "embedding:voyage": True})
+            mock_ai.health = AsyncMock(return_value={"groq": True, "embedding:voyage": True})
 
             response = await anon_client.get("/health")
 
@@ -40,10 +40,10 @@ class TestHealthEndpoint:
     async def test_health_includes_provider_routes(self, anon_client):
         with patch("app.ai.providers.ai_manager") as mock_ai:
             mock_ai.describe_routes.return_value = {
-                "extraction": {"provider": "anthropic", "model": "test"},
+                "extraction": {"provider": "groq", "model": "llama-3.3-70b-versatile"},
                 "embedding": {"provider": "voyage", "model": "voyage-3-large"},
             }
-            mock_ai.health = AsyncMock(return_value={"anthropic": True})
+            mock_ai.health = AsyncMock(return_value={"groq": True})
 
             response = await anon_client.get("/health")
 
@@ -63,7 +63,7 @@ class TestHealthEndpoint:
     async def test_health_provider_health_is_dict(self, anon_client):
         with patch("app.ai.providers.ai_manager") as mock_ai:
             mock_ai.describe_routes.return_value = {}
-            mock_ai.health = AsyncMock(return_value={"anthropic": True, "voyage": False})
+            mock_ai.health = AsyncMock(return_value={"groq": True, "voyage": False})
 
             response = await anon_client.get("/health")
 

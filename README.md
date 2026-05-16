@@ -5,8 +5,8 @@ Upload a resume → auto-extract skills, projects, and proficiencies. Ask in nat
 
 Built for the SkillsHub hackathon. The two centerpieces are:
 
-1. **Smart profile ingestion** — PDF/text resume → structured profile (Claude Sonnet, tool_use) → inferred related skills (deterministic rules + Claude Haiku) → HR review queue.
-2. **Semantic natural-language search** — query parsing (Haiku) → pgvector HNSW hybrid retrieval → LLM re-rank with match scores and per-candidate reasoning (Sonnet).
+1. **Smart profile ingestion** — PDF/text resume → structured profile (Groq llama-3.3-70b, tool_use) → inferred related skills (deterministic rules + llama-3.1-8b) → HR review queue.
+2. **Semantic natural-language search** — query parsing (llama-3.3-70b) → pgvector HNSW hybrid retrieval → LLM re-rank with match scores and per-candidate reasoning (llama-3.3-70b).
 
 Stretch goal implemented: **Skill Gap Analysis** — live talent pool coverage map on the HR dashboard.
 
@@ -19,7 +19,7 @@ Stretch goal implemented: **Skill Gap Analysis** — live talent pool coverage m
 | Frontend | Next.js 15 (App Router) + TypeScript + Tailwind 4 |
 | Backend | FastAPI + SQLAlchemy 2 (async) + Alembic + Pydantic v2 |
 | Database | PostgreSQL 16 + pgvector (HNSW index, cosine similarity) |
-| LLM | Claude Sonnet 4.6 (extraction, re-rank) + Claude Haiku 4.5 (inference, query parsing) |
+| LLM | Groq `llama-3.3-70b-versatile` (extraction, re-rank, parsing) + `llama-3.1-8b-instant` (inference) |
 | Embeddings | Voyage AI `voyage-3-large` (1024 dim) |
 | Container | Docker Compose |
 
@@ -27,7 +27,7 @@ Stretch goal implemented: **Skill Gap Analysis** — live talent pool coverage m
 
 ## Quick Start
 
-**Prerequisites:** Docker, Docker Compose, an Anthropic API key, a Voyage AI API key.
+**Prerequisites:** Docker, Docker Compose, a Groq API key (free at [console.groq.com](https://console.groq.com)), a Voyage AI API key.
 
 ```bash
 git clone <repo>
@@ -35,7 +35,7 @@ cd skillshub
 
 # 1. Copy and fill in your API keys
 cp .env.example .env
-# Required: ANTHROPIC_API_KEY, VOYAGE_API_KEY
+# Required: GROQ_API_KEY, VOYAGE_API_KEY
 # Required: JWT_SECRET  (generate: python -c "import secrets; print(secrets.token_urlsafe(48))")
 
 # 2. Build and start everything
@@ -60,7 +60,7 @@ Open:
 - Python 3.11+ with [`uv`](https://docs.astral.sh/uv/) installed
 - PostgreSQL 16 with the [pgvector extension](https://github.com/pgvector/pgvector)
 - Node.js 18+ and [pnpm](https://pnpm.io/)
-- API keys: `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`
+- API keys: `GROQ_API_KEY`, `VOYAGE_API_KEY`
 
 ### Backend
 
@@ -131,7 +131,7 @@ uv run ruff format .                                # Format
 
 ## Demo Path
 
-1. **Sign in as employee** (`emp@demo.com`) → **Upload Resume** → drop a PDF and watch Claude extract skills, projects, and certifications in ~20 seconds.
+1. **Sign in as employee** (`emp@demo.com`) → **Upload Resume** → drop a PDF and watch the AI extract skills, projects, and certifications in ~20 seconds.
 2. **Sign in as HR** (`hr@demo.com`) → **Review Queue** → see the extracted profile with AI-inferred skills (✨ badge). Click **Approve & Publish**.
 3. **HR → Search** → try these queries:
    - *"Who can lead a React project with WebSocket experience?"*
@@ -153,9 +153,8 @@ skillshub/
 │   │   ├── services/         Business orchestration
 │   │   ├── ai/
 │   │   │   ├── pipelines/    extraction.py, inference.py, search.py
-│   │   │   ├── prompts/      Claude tool schemas + system prompts
-│   │   │   ├── client.py     Anthropic async client (singleton)
-│   │   │   └── embeddings.py Voyage AI embedding client
+│   │   │   ├── prompts/      tool schemas + system prompts
+│   │   │   └── providers/    Groq (chat) + Voyage (embeddings) provider layer
 │   │   ├── db/
 │   │   │   ├── models/       SQLAlchemy ORM models
 │   │   │   └── repos/        DB access layer (embeddings, employees)
@@ -184,12 +183,11 @@ skillshub/
 ### Extraction (Hard Problem #1)
 ```
 PDF → pypdf text extraction
-    → Claude Sonnet tool_use (EXTRACT_PROFILE_TOOL)
-         system: cached large prompt (saves ~80% input tokens on repeated calls)
+    → Groq llama-3.3-70b-versatile tool_use (EXTRACT_PROFILE_TOOL)
          output: StructuredProfile JSON {name, skills[], projects[], certifications[]}
          each skill: {name, proficiency, years, evidence, confidence}
     → Deterministic inference (40+ rules: Next.js→React, Spring Boot→Java, …)
-    → Claude Haiku inference (contextual: Stripe+Node → "Payment Integration")
+    → Groq llama-3.1-8b-instant inference (contextual: Stripe+Node → "Payment Integration")
     → Upsert employees + skills + projects
     → Voyage AI embed → pgvector upsert
     → Status: pending_review
@@ -197,13 +195,13 @@ PDF → pypdf text extraction
 
 ### Search (Hard Problem #2)
 ```
-NL query → Claude Haiku parse_query tool
+NL query → Groq llama-3.3-70b-versatile parse_query tool
             {semantic_text, required_skills, min_years_per_skill, location}
          → Voyage AI embed(semantic_text, input_type="query")
          → pgvector HNSW KNN + SQL pre-filters (availability, location, min years)
             top-20 candidates retrieved
          → Load full profiles + render_profile_summary()
-         → Claude Sonnet rank_candidates tool (single call, all 20)
+         → Groq llama-3.3-70b-versatile rank_candidates tool (single call, all 20)
             each result: {match_score, reasoning, strengths[], gaps[]}
          → Return top-8 ranked results
 ```

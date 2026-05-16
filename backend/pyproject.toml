@@ -21,7 +21,6 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "bcrypt==4.0.1",  # passlib pin (avoids the deprecation noise on 4.1+)
     # AI providers
-    "anthropic>=0.40.0",
     "voyageai>=0.3.0",
     # Resume parsing
     "pypdf>=5.1.0",

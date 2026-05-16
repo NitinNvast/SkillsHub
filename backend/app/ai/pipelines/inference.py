@@ -122,7 +122,7 @@ def _deterministic_inferences(extracted: list[ExtractedSkill]) -> list[dict]:
     return results
 
 
-# ─── Stage 2: Claude Haiku ────────────────────────────────────────────────────
+# ─── Stage 2: Groq llama-3.1-8b-instant ──────────────────────────────────────
 
 
 async def _llm_inferences(

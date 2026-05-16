@@ -32,11 +32,15 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-1440}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
       VOYAGE_API_KEY: ${VOYAGE_API_KEY}
-      EXTRACTION_MODEL: ${EXTRACTION_MODEL:-claude-sonnet-4-6}
-      LIGHT_MODEL: ${LIGHT_MODEL:-claude-haiku-4-5-20251001}
-      RERANK_MODEL: ${RERANK_MODEL:-claude-sonnet-4-6}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      LLM_MODEL: ${LLM_MODEL:-llama-3.3-70b-versatile}
+      EXTRACTION_MODEL: ${EXTRACTION_MODEL:-llama-3.3-70b-versatile}
+      LIGHT_MODEL: ${LIGHT_MODEL:-llama-3.1-8b-instant}
+      RERANK_MODEL: ${RERANK_MODEL:-llama-3.3-70b-versatile}
+      PARSING_MODEL: ${PARSING_MODEL:-llama-3.3-70b-versatile}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-voyage}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-voyage-3-large}
     ports:
       - "8001:8000"

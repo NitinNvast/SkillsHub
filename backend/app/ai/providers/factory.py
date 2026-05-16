@@ -1,25 +1,19 @@
 """Provider factory — builds concrete provider instances from Settings.
 
-Providers are constructed lazily (only when first requested) so an .env that
-only configures Anthropic doesn't fail trying to read OPENAI_API_KEY.
+Only Groq (chat) and Voyage (embeddings) are supported.
+Providers are constructed lazily (only when first requested).
 """
 
 from __future__ import annotations
 
 from app.core.config import Settings
 
-from .anthropic_provider import AnthropicProvider
 from .base import (
     ChatProvider,
     EmbeddingProvider,
     ProviderUnavailableError,
 )
-from .gemini_embedding_provider import GeminiEmbeddingProvider
-from .gemini_provider import GeminiProvider
 from .groq_provider import GroqProvider
-from .openai_embedding_provider import OpenAIEmbeddingProvider
-from .openai_provider import OpenAICompatibleProvider
-from .openrouter_provider import OpenRouterProvider
 from .voyage_provider import VoyageEmbeddingProvider
 
 # ─── Registries ──────────────────────────────────────────────────────────────
@@ -29,32 +23,21 @@ def _build_chat_provider(name: str, settings: Settings) -> ChatProvider:
     name_lc = name.lower()
     timeout = settings.ai_request_timeout
 
-    if name_lc == "anthropic":
-        return AnthropicProvider(settings.anthropic_api_key, timeout=timeout)
-    if name_lc == "openai":
-        return OpenAICompatibleProvider(settings.openai_api_key, timeout=timeout)
     if name_lc == "groq":
         return GroqProvider(settings.groq_api_key, timeout=timeout)
-    if name_lc == "gemini":
-        return GeminiProvider(settings.gemini_api_key, timeout=timeout)
-    if name_lc == "openrouter":
-        return OpenRouterProvider(settings.openrouter_api_key, timeout=timeout)
 
-    raise ProviderUnavailableError(f"Unknown chat provider: {name!r}")
+    raise ProviderUnavailableError(f"Unknown chat provider: {name!r}. Only 'groq' is supported.")
 
 
 def _build_embedding_provider(name: str, settings: Settings) -> EmbeddingProvider:
     name_lc = name.lower()
-    timeout = settings.ai_request_timeout
 
     if name_lc == "voyage":
         return VoyageEmbeddingProvider(settings.voyage_api_key)
-    if name_lc == "openai":
-        return OpenAIEmbeddingProvider(settings.openai_api_key, timeout=timeout)
-    if name_lc == "gemini":
-        return GeminiEmbeddingProvider(settings.gemini_api_key, timeout=timeout)
 
-    raise ProviderUnavailableError(f"Unknown embedding provider: {name!r}")
+    raise ProviderUnavailableError(
+        f"Unknown embedding provider: {name!r}. Only 'voyage' is supported."
+    )
 
 
 # ─── Cache ───────────────────────────────────────────────────────────────────

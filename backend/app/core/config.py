@@ -1,18 +1,11 @@
 """Application settings loaded from env vars.
 
-AI configuration is provider-agnostic:
-  - LLM_PROVIDER / LLM_MODEL              : default chat/reasoning route
-  - FALLBACK_LLM_PROVIDER / FALLBACK_LLM_MODEL : retry target on primary failure
-  - EMBEDDING_PROVIDER / EMBEDDING_MODEL   : embedding route
-  - Per-task overrides (each falls back to LLM_*) :
-      EXTRACTION_PROVIDER / EXTRACTION_MODEL
-      INFERENCE_PROVIDER / INFERENCE_MODEL
-      PARSING_PROVIDER   / PARSING_MODEL
-      RERANK_PROVIDER    / RERANK_MODEL
-
-The legacy `extraction_model`, `light_model`, `rerank_model` fields are kept
-as aliases for the new per-task model fields so existing .env files continue
-to work without modification.
+AI configuration:
+  - LLM_PROVIDER=groq / LLM_MODEL                    : default chat route (Groq only)
+  - EMBEDDING_PROVIDER=voyage / EMBEDDING_MODEL       : embedding route (Voyage only)
+  - Per-task overrides (each falls back to LLM_*):
+      EXTRACTION_MODEL, INFERENCE_MODEL, PARSING_MODEL, RERANK_MODEL
+  - LIGHT_MODEL: fast model for inference + parsing tasks
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -34,18 +27,14 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24  # 1 day
 
-    # ─── AI provider API keys (only the ones you use need to be set) ──
-    anthropic_api_key: str | None = None
-    openai_api_key: str | None = None
+    # ─── AI provider API keys ──────────────────────────────
     groq_api_key: str | None = None
-    gemini_api_key: str | None = None
-    openrouter_api_key: str | None = None
     voyage_api_key: str | None = None
     github_token: str | None = None
 
     # ─── Default chat/reasoning route ──────────────────────
-    llm_provider: str = "anthropic"
-    llm_model: str = "claude-sonnet-4-6"
+    llm_provider: str = "groq"
+    llm_model: str = "llama-3.3-70b-versatile"
 
     # ─── Fallback (used on primary provider failure) ───────
     fallback_llm_provider: str | None = None
@@ -59,15 +48,14 @@ class Settings(BaseSettings):
     # ─── Per-task overrides ────────────────────────────────
     # Each is optional — when unset, the task uses LLM_PROVIDER / LLM_MODEL.
     extraction_provider: str | None = None
-    extraction_model: str | None = "claude-sonnet-4-6"  # legacy default
+    extraction_model: str | None = "llama-3.3-70b-versatile"
     inference_provider: str | None = None
     inference_model: str | None = None
     parsing_provider: str | None = None
     parsing_model: str | None = None
     rerank_provider: str | None = None
-    rerank_model: str | None = "claude-sonnet-4-6"  # legacy default
-    # `light_model` was the legacy name for the Haiku model used by inference + parsing.
-    light_model: str | None = "claude-haiku-4-5-20251001"
+    rerank_model: str | None = "llama-3.3-70b-versatile"
+    light_model: str | None = "llama-3.1-8b-instant"
 
     # ─── Reliability ───────────────────────────────────────
     ai_request_timeout: float = 60.0

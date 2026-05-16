@@ -12,9 +12,9 @@ import os
 def pytest_configure(config):
     os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/testdb")
     os.environ.setdefault("JWT_SECRET", "test-jwt-secret-for-tests-only-minimum32chars")
-    os.environ.setdefault("LLM_PROVIDER", "anthropic")
-    os.environ.setdefault("LLM_MODEL", "claude-sonnet-4-6")
-    os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
+    os.environ.setdefault("LLM_PROVIDER", "groq")
+    os.environ.setdefault("LLM_MODEL", "llama-3.3-70b-versatile")
+    os.environ.setdefault("GROQ_API_KEY", "test-groq-key")
     os.environ.setdefault("VOYAGE_API_KEY", "test-voyage-key")
     os.environ.setdefault("EMBEDDING_PROVIDER", "voyage")
     os.environ.setdefault("EMBEDDING_MODEL", "voyage-3-large")

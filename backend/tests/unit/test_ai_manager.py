@@ -23,8 +23,8 @@ def _make_settings(**overrides) -> Settings:
     base = {
         "database_url": "postgresql+asyncpg://test:test@localhost/testdb",
         "jwt_secret": "test-jwt-secret-for-tests-only-minimum32chars!",
-        "llm_provider": "anthropic",
-        "llm_model": "claude-sonnet-4-6",
+        "llm_provider": "groq",
+        "llm_model": "llama-3.3-70b-versatile",
         "embedding_provider": "voyage",
         "embedding_model": "voyage-3-large",
     }
@@ -51,49 +51,49 @@ class TestResolveRoute:
     def test_defaults_to_llm_provider_and_model(self):
         settings = _make_settings()
         route = _resolve_route("general", settings)
-        assert route.provider == "anthropic"
-        assert route.model == "claude-sonnet-4-6"
+        assert route.provider == "groq"
+        assert route.model == "llama-3.3-70b-versatile"
 
     def test_extraction_uses_default_when_no_override(self):
         settings = _make_settings()
         route = _resolve_route("extraction", settings)
-        assert route.provider == "anthropic"
+        assert route.provider == "groq"
 
     def test_extraction_uses_extraction_model_override(self):
-        settings = _make_settings(extraction_model="claude-opus-4-7")
+        settings = _make_settings(extraction_model="llama-3.3-70b-versatile")
         route = _resolve_route("extraction", settings)
-        assert route.model == "claude-opus-4-7"
+        assert route.model == "llama-3.3-70b-versatile"
 
     def test_extraction_uses_extraction_provider_override(self):
-        settings = _make_settings(extraction_provider="openai")
+        settings = _make_settings(extraction_provider="groq")
         route = _resolve_route("extraction", settings)
-        assert route.provider == "openai"
+        assert route.provider == "groq"
 
     def test_inference_uses_light_model_when_no_override(self):
-        settings = _make_settings(light_model="claude-haiku-4-5-20251001")
+        settings = _make_settings(light_model="llama-3.1-8b-instant")
         route = _resolve_route("inference", settings)
-        assert route.model == "claude-haiku-4-5-20251001"
+        assert route.model == "llama-3.1-8b-instant"
 
     def test_parsing_uses_light_model_when_no_override(self):
-        settings = _make_settings(light_model="claude-haiku-4-5-20251001")
+        settings = _make_settings(light_model="llama-3.1-8b-instant")
         route = _resolve_route("parsing", settings)
-        assert route.model == "claude-haiku-4-5-20251001"
+        assert route.model == "llama-3.1-8b-instant"
 
     def test_rerank_uses_rerank_model_override(self):
-        settings = _make_settings(rerank_model="claude-sonnet-4-6")
+        settings = _make_settings(rerank_model="llama-3.3-70b-versatile")
         route = _resolve_route("rerank", settings)
-        assert route.model == "claude-sonnet-4-6"
+        assert route.model == "llama-3.3-70b-versatile"
 
     def test_unknown_task_falls_back_to_llm_defaults(self):
         settings = _make_settings()
         route = _resolve_route("unknown_task_xyz", settings)
-        assert route.provider == "anthropic"
-        assert route.model == "claude-sonnet-4-6"
+        assert route.provider == "groq"
+        assert route.model == "llama-3.3-70b-versatile"
 
     def test_provider_is_lowercased(self):
-        settings = _make_settings(extraction_provider="OPENAI")
+        settings = _make_settings(extraction_provider="GROQ")
         route = _resolve_route("extraction", settings)
-        assert route.provider == "openai"
+        assert route.provider == "groq"
 
 
 # ─── _fallback_route ─────────────────────────────────────────────────────────
@@ -105,16 +105,18 @@ class TestFallbackRoute:
         assert _fallback_route(settings) is None
 
     def test_returns_route_when_configured(self):
-        settings = _make_settings(fallback_llm_provider="openai", fallback_llm_model="gpt-4o")
+        settings = _make_settings(
+            fallback_llm_provider="groq", fallback_llm_model="llama-3.1-8b-instant"
+        )
         route = _fallback_route(settings)
         assert route is not None
-        assert route.provider == "openai"
-        assert route.model == "gpt-4o"
+        assert route.provider == "groq"
+        assert route.model == "llama-3.1-8b-instant"
 
     def test_fallback_model_defaults_to_llm_model_when_not_set(self):
-        settings = _make_settings(fallback_llm_provider="openai", fallback_llm_model=None)
+        settings = _make_settings(fallback_llm_provider="groq", fallback_llm_model=None)
         route = _fallback_route(settings)
-        assert route.model == "claude-sonnet-4-6"
+        assert route.model == "llama-3.3-70b-versatile"
 
 
 # ─── AIManager.chat ───────────────────────────────────────────────────────────
@@ -134,29 +136,21 @@ class TestAIManagerChat:
 
         assert result.text == "Hello"
 
-    async def test_fallback_invoked_on_primary_failure(self):
-        settings = _make_settings(fallback_llm_provider="openai", fallback_llm_model="gpt-4o")
+    async def test_fallback_same_provider_raises_on_primary_failure(self):
+        # In Groq-only mode, primary and fallback are the same provider.
+        # The manager skips the fallback to avoid pointless same-provider retries.
+        settings = _make_settings(
+            fallback_llm_provider="groq", fallback_llm_model="llama-3.1-8b-instant"
+        )
         manager = AIManager(settings=settings)
 
-        call_count = 0
-        primary_provider = AsyncMock()
-        fallback_provider = AsyncMock()
+        mock_provider = AsyncMock()
+        mock_provider.chat = AsyncMock(side_effect=ProviderInvocationError("500 error"))
 
-        def _get_provider(name):
-            nonlocal call_count
-            call_count += 1
-            if name == "anthropic":
-                primary_provider.chat = AsyncMock(side_effect=ProviderInvocationError("500 error"))
-                return primary_provider
-            else:
-                fallback_provider.chat = AsyncMock(return_value=_make_response("fallback"))
-                return fallback_provider
-
-        with patch.object(manager._registry, "chat", side_effect=_get_provider):
+        with patch.object(manager._registry, "chat", return_value=mock_provider):
             request = ChatRequest(messages=[{"role": "user", "content": "Hi"}])
-            result = await manager.chat(request, task="general")
-
-        assert result.text == "fallback"
+            with pytest.raises(ProviderInvocationError):
+                await manager.chat(request, task="general")
 
     async def test_no_fallback_raises_on_primary_failure(self):
         settings = _make_settings(fallback_llm_provider=None)
@@ -172,8 +166,8 @@ class TestAIManagerChat:
 
     async def test_same_primary_and_fallback_does_not_double_retry(self):
         settings = _make_settings(
-            fallback_llm_provider="anthropic",  # same as primary
-            fallback_llm_model="claude-haiku-4-5-20251001",
+            fallback_llm_provider="groq",
+            fallback_llm_model="llama-3.1-8b-instant",
         )
         manager = AIManager(settings=settings)
 
@@ -311,10 +305,12 @@ class TestDescribeRoutes:
             assert "model" in info, f"{task} missing model"
 
     def test_fallback_included_when_configured(self):
-        settings = _make_settings(fallback_llm_provider="openai", fallback_llm_model="gpt-4o")
+        settings = _make_settings(
+            fallback_llm_provider="groq", fallback_llm_model="llama-3.1-8b-instant"
+        )
         manager = AIManager(settings=settings)
 
         routes = manager.describe_routes()
 
         assert "fallback" in routes
-        assert routes["fallback"]["provider"] == "openai"
+        assert routes["fallback"]["provider"] == "groq"

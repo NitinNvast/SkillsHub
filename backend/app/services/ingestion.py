@@ -41,7 +41,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> tuple[str, bool]:
 
     'Good quality' means pypdf extracted >200 characters — typical of
     text-based PDFs. Scanned/image PDFs return short or empty strings;
-    in that case callers should fall back to Claude vision.
+    in that case callers should fall back to vision mode.
     """
     import io
 
