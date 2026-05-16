@@ -25,7 +25,12 @@ async def get_my_profile(session: SessionDep, user: CurrentUser) -> EmployeeDeta
 
     from app.db.models import Employee
 
-    result = await session.execute(select(Employee).where(Employee.user_id == user.id))
+    result = await session.execute(
+        select(Employee)
+        .where(Employee.user_id == user.id)
+        .order_by(Employee.created_at.desc())
+        .limit(1)
+    )
     emp = result.scalar_one_or_none()
     if emp is None:
         raise HTTPException(status_code=404, detail="No employee profile found for this account")

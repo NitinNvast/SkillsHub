@@ -37,7 +37,7 @@ class EmployeeListItem(BaseModel):
 
     id: UUID
     name: str
-    email: EmailStr
+    email: str
     title: str | None = None
     location: str | None = None
     total_years_exp: Decimal | None = None
@@ -52,7 +52,7 @@ class EmployeeDetail(BaseModel):
 
     id: UUID
     name: str
-    email: EmailStr
+    email: str
     title: str | None = None
     location: str | None = None
     summary: str | None = None

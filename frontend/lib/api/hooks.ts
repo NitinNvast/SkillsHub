@@ -173,9 +173,14 @@ export function useEmployee(id: string | null) {
 }
 
 export function useMyEmployee() {
-  return useQuery<EmployeeDetail>({
+  return useQuery<EmployeeDetail, Error>({
     queryKey: ["employee-me"],
     queryFn: () => api<EmployeeDetail>("/employees/me"),
+    retry: (count, err) => {
+      // Don't retry 404 — it just means no profile yet
+      if ((err as { status?: number }).status === 404) return false;
+      return count < 2;
+    },
   });
 }
 

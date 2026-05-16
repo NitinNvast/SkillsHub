@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MapPin, Briefcase, Calendar, FolderOpen, Award, Sparkles, Github, Upload } from "lucide-react";
+import { MapPin, Briefcase, Calendar, FolderOpen, Award, Sparkles, Github, Upload, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMyEmployee, useGitHubSync } from "@/lib/api/hooks";
 import { SkillChip } from "@/components/skills/SkillChip";
 import { cn } from "@/lib/utils";
@@ -22,8 +23,19 @@ const AVAILABILITY_LABEL: Record<string, string> = {
 
 const CATEGORY_ORDER = ["language", "framework", "platform", "tool", "domain"];
 
+function friendlyError(err: Error | null): string {
+  if (!err) return "Something went wrong. Please refresh the page.";
+  const status = (err as { status?: number }).status;
+  if (status === 401 || status === 403) return "Your session has expired. Please log in again.";
+  if (status && status >= 500) return "The server encountered an error. Please try again in a moment.";
+  if (err.message === "Failed to fetch" || err.message.includes("NetworkError"))
+    return "Could not reach the server. Check your connection and try again.";
+  return err.message || "Something went wrong. Please refresh the page.";
+}
+
 export default function ProfilePage() {
-  const { data: emp, isLoading } = useMyEmployee();
+  const qc = useQueryClient();
+  const { data: emp, isLoading, error } = useMyEmployee();
   const [githubInput, setGithubInput] = useState("");
   const { mutate: syncGitHub, isPending: syncingGitHub } = useGitHubSync(emp?.id ?? "");
 
@@ -53,13 +65,36 @@ export default function ProfilePage() {
   }
 
   if (!emp) {
+    const isNotFound = !error || (error as { status?: number }).status === 404;
+
+    if (!isNotFound) {
+      return (
+        <div className="px-8 py-8 max-w-3xl mx-auto">
+          <div className="rounded-xl border border-red-100 bg-red-50 p-10 text-center">
+            <AlertCircle className="h-10 w-10 text-red-400 mx-auto mb-3" />
+            <p className="text-sm font-semibold text-red-800">Could not load profile</p>
+            <p className="text-xs text-red-600 mt-1 mb-5 max-w-xs mx-auto">
+              {friendlyError(error)}
+            </p>
+            <button
+              onClick={() => qc.invalidateQueries({ queryKey: ["employee-me"] })}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 transition cursor-pointer"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="px-8 py-8 max-w-3xl mx-auto">
         <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-card)] p-14 text-center">
           <Sparkles className="h-10 w-10 text-[var(--color-muted-foreground)] mx-auto mb-3 opacity-40" />
           <p className="text-sm font-semibold">No profile yet</p>
           <p className="text-xs text-[var(--color-muted-foreground)] mt-1 mb-4">
-            Upload your resume or LinkedIn export — AI extracts your skills automatically.
+            Upload your resume — AI extracts your skills automatically.
           </p>
           <Link
             href="/upload"

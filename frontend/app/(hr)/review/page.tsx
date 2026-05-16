@@ -48,41 +48,60 @@ export default function ReviewQueuePage() {
 
       {queue && queue.length > 0 && (
         <div className="space-y-3">
-          {queue.map((item) => (
-            <Link
-              key={item.upload_id}
-              href={`/review/${item.upload_id}`}
-              className="group flex items-center gap-4 rounded-xl border border-[var(--color-border)] border-l-4 border-l-amber-400 bg-[var(--color-card)] p-4 hover:shadow-md transition-shadow shadow-sm"
-            >
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center shrink-0">
-                <FileText className="h-5 w-5 text-purple-600" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold truncate group-hover:text-[var(--color-primary)] transition-colors">{item.candidate_name}</p>
-                  <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] text-[var(--color-muted-foreground)]">
-                    {SOURCE_LABEL[item.source] ?? item.source}
-                  </span>
+          {queue.map((item) => {
+            const isFailed = item.status === "failed";
+            return (
+              <Link
+                key={item.upload_id}
+                href={`/review/${item.upload_id}`}
+                className={`group flex items-center gap-4 rounded-xl border border-l-4 bg-[var(--color-card)] p-4 hover:shadow-md transition-shadow shadow-sm ${
+                  isFailed
+                    ? "border-[var(--color-border)] border-l-red-400"
+                    : "border-[var(--color-border)] border-l-amber-400"
+                }`}
+              >
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
+                  isFailed ? "bg-red-50" : "bg-gradient-to-br from-purple-50 to-purple-100"
+                }`}>
+                  <FileText className={`h-5 w-5 ${isFailed ? "text-red-500" : "text-purple-600"}`} />
                 </div>
-                <div className="flex items-center gap-3 mt-0.5 text-xs text-[var(--color-muted-foreground)]">
-                  <span>{item.skill_count} skills extracted</span>
-                  {item.inferred_count > 0 && (
-                    <span className="text-purple-600">✨ {item.inferred_count} inferred</span>
-                  )}
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold truncate group-hover:text-[var(--color-primary)] transition-colors">{item.candidate_name}</p>
+                    <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] text-[var(--color-muted-foreground)]">
+                      {SOURCE_LABEL[item.source] ?? item.source}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5 text-xs text-[var(--color-muted-foreground)]">
+                    {isFailed ? (
+                      <span className="text-red-500">Extraction failed — AI could not process this resume</span>
+                    ) : (
+                      <>
+                        <span>{item.skill_count} skills extracted</span>
+                        {item.inferred_count > 0 && (
+                          <span className="text-purple-600">✨ {item.inferred_count} inferred</span>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="shrink-0 flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]">
-                <Clock className="h-3.5 w-3.5" />
-                {new Date(item.created_at).toLocaleDateString()}
-              </div>
+                <div className="shrink-0 flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]">
+                  <Clock className="h-3.5 w-3.5" />
+                  {new Date(item.created_at).toLocaleDateString()}
+                </div>
 
-              <span className="shrink-0 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-700">
-                Pending
-              </span>
-            </Link>
-          ))}
+                <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${
+                  isFailed
+                    ? "bg-red-50 border-red-200 text-red-700"
+                    : "bg-amber-50 border-amber-200 text-amber-700"
+                }`}>
+                  {isFailed ? "Failed" : "Pending"}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

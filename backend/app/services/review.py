@@ -27,10 +27,10 @@ log = logging.getLogger(__name__)
 
 
 async def list_pending(session: AsyncSession) -> list[ReviewQueueItem]:
-    """Return all uploads with status pending_review, newest first."""
+    """Return pending and failed uploads, newest first."""
     result = await session.execute(
         select(ResumeUpload)
-        .where(ResumeUpload.status == UploadStatus.PENDING_REVIEW.value)
+        .where(ResumeUpload.status.in_([UploadStatus.PENDING_REVIEW.value, UploadStatus.FAILED.value]))
         .order_by(ResumeUpload.created_at.desc())
     )
     uploads = result.scalars().all()
