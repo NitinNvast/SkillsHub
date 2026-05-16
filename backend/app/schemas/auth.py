@@ -10,6 +10,12 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=4)
 
 
+class RegisterRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    email: EmailStr
+    password: str = Field(min_length=6)
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

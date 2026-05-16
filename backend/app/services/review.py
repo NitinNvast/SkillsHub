@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -11,8 +11,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Employee, EmployeeSkill, ResumeUpload, UploadStatus
-from app.schemas.employee import CertificationOut, EmployeeDetail, ProjectOut
+from app.db.models import Employee, ResumeUpload, UploadStatus
+from app.schemas.employee import EmployeeDetail
 from app.schemas.review import (
     ApproveResponse,
     ProfileEditRequest,
@@ -141,7 +141,7 @@ async def approve(
         return None
 
     upload.status = UploadStatus.APPROVED.value
-    upload.reviewed_at = datetime.now(timezone.utc)
+    upload.reviewed_at = datetime.now(UTC)
     upload.reviewed_by = reviewer_id
     await session.commit()
 
@@ -174,7 +174,7 @@ async def reject(
         return None
 
     upload.status = UploadStatus.REJECTED.value
-    upload.reviewed_at = datetime.now(timezone.utc)
+    upload.reviewed_at = datetime.now(UTC)
     upload.reviewed_by = reviewer_id
     if reason:
         upload.notes = reason

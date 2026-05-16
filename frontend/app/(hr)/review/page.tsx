@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardList, FileText, Clock } from "lucide-react";
+import { AlertCircle, ClipboardList, FileText, Clock } from "lucide-react";
 import { useReviewQueue } from "@/lib/api/hooks";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 
@@ -12,7 +12,7 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export default function ReviewQueuePage() {
-  const { data: queue, isLoading } = useReviewQueue();
+  const { data: queue, isLoading, isError } = useReviewQueue();
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto animate-fade-up">
@@ -25,6 +25,16 @@ export default function ReviewQueuePage() {
       </div>
 
       {isLoading && <SkeletonTable rows={4} />}
+
+      {isError && (
+        <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">Failed to load review queue.</p>
+            <p className="text-xs mt-0.5 text-red-600">Check your connection or refresh the page.</p>
+          </div>
+        </div>
+      )}
 
       {!isLoading && (!queue || queue.length === 0) && (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-14 text-center">

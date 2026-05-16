@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, employees, review, search, skills, uploads
+from app.api import auth, employees, review, search, skills, team_builder, uploads
 from app.core.config import settings
 
 
@@ -69,3 +69,4 @@ app.include_router(skills.router, prefix="/skills", tags=["skills"])
 app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
 app.include_router(search.router, prefix="/search", tags=["search"])
 app.include_router(review.router, prefix="/review-queue", tags=["review"])
+app.include_router(team_builder.router, prefix="/team-builder", tags=["team-builder"])

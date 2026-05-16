@@ -24,7 +24,12 @@ async def search(payload: SearchRequest, session: SessionDep) -> SearchResponse:
       "Senior frontend engineers who haven't been on a new project recently."
     """
     try:
-        raw = await run_semantic_search(session, payload.query, limit=payload.limit)
+        raw = await run_semantic_search(
+            session,
+            payload.query,
+            limit=payload.limit,
+            conversation_history=[m.model_dump() for m in payload.conversation_history],
+        )
     except RateLimitError as exc:
         raise HTTPException(
             status_code=429,

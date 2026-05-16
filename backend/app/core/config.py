@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     openrouter_api_key: str | None = None
     voyage_api_key: str | None = None
+    github_token: str | None = None
 
     # ─── Default chat/reasoning route ──────────────────────
     llm_provider: str = "anthropic"

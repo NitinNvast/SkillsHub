@@ -52,4 +52,11 @@ class SkillGapItem(BaseModel):
         description="Number of employees who have this skill (extracted/manual)"
     )
     expert_count: int = Field(description="Employees with expert-level proficiency")
+    intermediate_count: int = Field(default=0, description="Employees with intermediate proficiency")
     gap_severity: str = Field(description="critical | warning | healthy")
+    coverage_pct: float = Field(description="Percentage of workforce with this skill (0-100)")
+
+
+class SkillGapResponse(BaseModel):
+    total_employees: int
+    items: list[SkillGapItem]

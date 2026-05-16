@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -9,9 +10,15 @@ from pydantic import BaseModel, Field
 from app.schemas.skill import EmployeeSkillOut
 
 
+class ConversationMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class SearchRequest(BaseModel):
     query: str = Field(min_length=3, max_length=1000)
     limit: int = Field(default=8, ge=1, le=20)
+    conversation_history: list[ConversationMessage] = []
 
 
 class ParsedQuery(BaseModel):

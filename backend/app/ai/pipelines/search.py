@@ -72,7 +72,7 @@ _PARSE_FALLBACK: dict = {
 }
 
 
-async def _parse_query(query: str) -> dict:
+async def _parse_query(query: str, conversation_history: list[dict] | None = None) -> dict:
     from app.ai.prompts.parse_query import (
         PARSE_QUERY_SYSTEM,
         PARSE_QUERY_TOOL,
@@ -81,9 +81,10 @@ async def _parse_query(query: str) -> dict:
     from app.ai.providers import ChatRequest, ai_manager
     from app.ai.providers.base import ProviderError
 
+    messages = [*(conversation_history or []), {"role": "user", "content": build_parse_message(query)}]
     request = ChatRequest(
         system=PARSE_QUERY_SYSTEM,
-        messages=[{"role": "user", "content": build_parse_message(query)}],
+        messages=messages,
         tools=[PARSE_QUERY_TOOL],
         tool_choice="any",
         max_tokens=512,
@@ -198,6 +199,7 @@ async def run_semantic_search(
     session: AsyncSession,
     query: str,
     limit: int = 8,
+    conversation_history: list[dict] | None = None,
 ) -> dict:
     """
     End-to-end semantic search.
@@ -218,7 +220,7 @@ async def run_semantic_search(
     from app.schemas.skill import EmployeeSkillOut
 
     # ── 1. Parse NL query ──────────────────────────────────────
-    parsed = await _parse_query(query)
+    parsed = await _parse_query(query, conversation_history=conversation_history)
     log.info(
         "Parsed query: semantic='%s', skills=%s, loc=%s",
         parsed["semantic_text"][:60],

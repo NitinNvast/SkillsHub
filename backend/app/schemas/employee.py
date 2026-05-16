@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.schemas.skill import EmployeeSkillOut
 
@@ -78,3 +78,17 @@ class EmployeeUpdate(BaseModel):
     current_project: str | None = None
     last_project_end_date: date | None = None
     availability: str | None = None
+
+
+class CreateEmployeeRequest(BaseModel):
+    """HR creates a new employee account."""
+
+    name: str = Field(min_length=1, max_length=255)
+    email: EmailStr
+    password: str = Field(min_length=6)
+    title: str | None = None
+    location: str | None = None
+
+
+class GitHubSyncRequest(BaseModel):
+    github_username: str = Field(min_length=1, max_length=100)

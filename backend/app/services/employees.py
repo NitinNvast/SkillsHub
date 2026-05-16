@@ -6,8 +6,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Employee, EmployeeSkill
-from app.schemas.employee import EmployeeDetail, EmployeeListItem, EmployeeUpdate
+from app.core.security import hash_password
+from app.db.models import Employee, EmployeeSkill, User, UserRole
+from app.schemas.employee import (
+    CreateEmployeeRequest,
+    EmployeeDetail,
+    EmployeeListItem,
+    EmployeeUpdate,
+)
 from app.schemas.skill import EmployeeSkillOut
 
 
@@ -90,6 +96,44 @@ async def get_employee(session: AsyncSession, employee_id: UUID) -> EmployeeDeta
             for c in e.certifications
         ],
     )
+
+
+async def create_employee_with_account(
+    session: AsyncSession, payload: CreateEmployeeRequest
+) -> EmployeeDetail:
+    """HR creates a new employee: User account + Employee profile linked together."""
+    # Check email uniqueness across both tables
+    existing_user = await session.execute(select(User).where(User.email == payload.email))
+    if existing_user.scalar_one_or_none() is not None:
+        raise ValueError("An account with this email already exists")
+
+    existing_emp = await session.execute(select(Employee).where(Employee.email == payload.email))
+    if existing_emp.scalar_one_or_none() is not None:
+        raise ValueError("An employee profile with this email already exists")
+
+    user = User(
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        name=payload.name,
+        role=UserRole.EMPLOYEE.value,
+    )
+    session.add(user)
+    await session.flush()
+
+    employee = Employee(
+        name=payload.name,
+        email=payload.email,
+        title=payload.title,
+        location=payload.location,
+        user_id=user.id,
+    )
+    session.add(employee)
+    await session.commit()
+    await session.refresh(employee)
+
+    detail = await get_employee(session, employee.id)
+    assert detail is not None
+    return detail
 
 
 async def update_employee(

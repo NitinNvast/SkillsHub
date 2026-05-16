@@ -8,23 +8,29 @@ import { useAuth } from "@/lib/auth/context";
 import { ApiError } from "@/lib/api/client";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-export default function LoginPage() {
-  const { login } = useAuth();
+export default function RegisterPage() {
+  const { register } = useAuth();
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
     setLoading(true);
     try {
-      const user = await login(email, password);
-      router.replace(user.role === "hr" ? "/dashboard" : "/upload");
+      await register(name.trim(), email, password);
+      router.replace("/upload");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Login failed. Try again.");
+      setError(err instanceof ApiError ? err.message : "Registration failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -45,16 +51,27 @@ export default function LoginPage() {
         </div>
 
         <div className="rounded-xl border border-[var(--color-border)] border-t-4 border-t-indigo-500 bg-[var(--color-card)] p-8 shadow-xl">
-          <h2 className="text-lg font-semibold mb-6">Sign in</h2>
+          <h2 className="text-lg font-semibold mb-6">Create your account</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Full name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Jane Smith"
+                required
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="hr@demo.com"
+                placeholder="jane@company.com"
                 required
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
@@ -65,7 +82,19 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="demo1234"
+                placeholder="Min. 6 characters"
+                required
+                minLength={6}
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Confirm password</label>
+              <input
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Re-enter password"
                 required
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
@@ -82,20 +111,14 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 disabled:opacity-60 transition cursor-pointer"
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
-          <div className="mt-6 rounded-lg bg-[var(--color-muted)] p-3 text-xs text-[var(--color-muted-foreground)] space-y-1">
-            <p className="font-semibold text-[var(--color-foreground)]">Demo credentials</p>
-            <p>HR: <span className="font-mono">hr@demo.com</span> / <span className="font-mono">demo1234</span></p>
-            <p>Employee: <span className="font-mono">emp@demo.com</span> / <span className="font-mono">demo1234</span></p>
-          </div>
-
-          <p className="mt-5 text-center text-xs text-[var(--color-muted-foreground)]">
-            New employee?{" "}
-            <Link href="/register" className="text-indigo-600 hover:underline font-medium">
-              Create an account
+          <p className="mt-6 text-center text-xs text-[var(--color-muted-foreground)]">
+            Already have an account?{" "}
+            <Link href="/login" className="text-indigo-600 hover:underline font-medium">
+              Sign in
             </Link>
           </p>
         </div>

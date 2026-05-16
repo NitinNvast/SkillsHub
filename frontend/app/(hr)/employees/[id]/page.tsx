@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Briefcase, Calendar, FolderOpen, Award } from "lucide-react";
-import { useEmployee } from "@/lib/api/hooks";
+import { ArrowLeft, MapPin, Briefcase, Calendar, FolderOpen, Award, Github } from "lucide-react";
+import { toast } from "sonner";
+import { useEmployee, useGitHubSync } from "@/lib/api/hooks";
 import { SkillChip } from "@/components/skills/SkillChip";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,23 @@ const CATEGORY_ORDER = ["language", "framework", "platform", "tool", "domain"];
 export default function EmployeeProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { data: emp, isLoading, error } = useEmployee(id);
+  const [githubInput, setGithubInput] = useState("");
+  const { mutate: syncGitHub, isPending: syncingGitHub } = useGitHubSync(id);
+
+  function handleGitHubSync(e: React.FormEvent) {
+    e.preventDefault();
+    if (!githubInput.trim()) return;
+    syncGitHub(
+      { github_username: githubInput.trim() },
+      {
+        onSuccess: () => {
+          toast.success("GitHub skills synced successfully.");
+          setGithubInput("");
+        },
+        onError: (err) => toast.error(err.message || "GitHub sync failed."),
+      }
+    );
+  }
 
   if (isLoading) {
     return (
@@ -180,7 +199,7 @@ export default function EmployeeProfilePage() {
 
       {/* Certifications */}
       {emp.certifications.length > 0 && (
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 mb-5 shadow-sm">
           <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
             <Award className="h-4 w-4 text-[var(--color-muted-foreground)]" />
             Certifications
@@ -198,6 +217,37 @@ export default function EmployeeProfilePage() {
           </ul>
         </div>
       )}
+
+      {/* GitHub Sync */}
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
+          <Github className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+          Sync GitHub Skills
+        </h2>
+        <p className="text-xs text-[var(--color-muted-foreground)] mb-3">
+          Import language proficiency from public repositories.
+        </p>
+        <form onSubmit={handleGitHubSync} className="flex gap-2">
+          <input
+            value={githubInput}
+            onChange={(e) => setGithubInput(e.target.value)}
+            placeholder="GitHub username (e.g. octocat)"
+            className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+          />
+          <button
+            type="submit"
+            disabled={syncingGitHub || !githubInput.trim()}
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--color-foreground)] text-[var(--color-background)] px-3 py-2 text-xs font-semibold disabled:opacity-50 transition cursor-pointer hover:opacity-80"
+          >
+            {syncingGitHub ? (
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current/30 border-t-current" />
+            ) : (
+              <Github className="h-3.5 w-3.5" />
+            )}
+            Sync
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

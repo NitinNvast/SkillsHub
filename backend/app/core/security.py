@@ -1,6 +1,6 @@
 """JWT and password hashing primitives."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -23,7 +23,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(
     *, user_id: UUID | str, role: str, extra: dict[str, Any] | None = None
 ) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": str(user_id),
         "role": role,

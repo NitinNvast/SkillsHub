@@ -107,6 +107,54 @@ export interface UploadResponse {
   message: string;
 }
 
+export interface CreateEmployeePayload {
+  name: string;
+  email: string;
+  password: string;
+  title?: string;
+  location?: string;
+}
+
+// ─── Team Builder ─────────────────────────────────────────────────────────────
+
+export interface TeamMemberProposal {
+  employee_id: string;
+  name: string;
+  title: string | null;
+  role_in_project: string;
+  match_score: number;
+  rationale: string;
+  top_skills: string[];
+}
+
+export interface TeamBuilderResponse {
+  description: string;
+  proposal: {
+    team: TeamMemberProposal[];
+    team_rationale: string;
+    gaps: string[];
+    alternatives: TeamMemberProposal[];
+  };
+  total_candidates_considered: number;
+}
+
+// ─── Bulk Import ──────────────────────────────────────────────────────────────
+
+export interface BulkUploadResult {
+  filename: string;
+  upload_id: string | null;
+  employee_id: string | null;
+  status: "queued" | "failed";
+  error: string | null;
+}
+
+export interface BulkUploadResponse {
+  total: number;
+  queued: number;
+  failed: number;
+  results: BulkUploadResult[];
+}
+
 // ─── Employees ────────────────────────────────────────────────────────────────
 
 export function useEmployees(q?: string) {
@@ -131,10 +179,33 @@ export function useMyEmployee() {
   });
 }
 
+export function useCreateEmployee() {
+  const qc = useQueryClient();
+  return useMutation<EmployeeDetail, Error, CreateEmployeePayload>({
+    mutationFn: (payload) =>
+      api<EmployeeDetail>("/employees", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["employees"] });
+    },
+  });
+}
+
 // ─── Search ───────────────────────────────────────────────────────────────────
 
+export interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export function useSearch() {
-  return useMutation<SearchResponse, Error, { query: string; limit?: number }>({
+  return useMutation<
+    SearchResponse,
+    Error,
+    { query: string; limit?: number; conversation_history?: ConversationMessage[] }
+  >({
     mutationFn: (payload) =>
       api<SearchResponse>("/search", {
         method: "POST",
@@ -204,6 +275,63 @@ export function useUploadText() {
   });
 }
 
+// ─── Team Builder ─────────────────────────────────────────────────────────────
+
+export function useTeamBuilder() {
+  return useMutation<
+    TeamBuilderResponse,
+    Error,
+    { description: string; team_size: number; duration_weeks: number }
+  >({
+    mutationFn: (payload) =>
+      api<TeamBuilderResponse>("/team-builder", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  });
+}
+
+// ─── GitHub Sync ──────────────────────────────────────────────────────────────
+
+export function useGitHubSync(employeeId: string) {
+  const qc = useQueryClient();
+  return useMutation<EmployeeDetail, Error, { github_username: string }>({
+    mutationFn: (payload) =>
+      api<EmployeeDetail>(`/employees/${employeeId}/github`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["employee", employeeId] });
+      qc.invalidateQueries({ queryKey: ["employee-me"] });
+    },
+  });
+}
+
+// ─── Bulk Import ──────────────────────────────────────────────────────────────
+
+export function useBulkUpload() {
+  const qc = useQueryClient();
+  return useMutation<BulkUploadResponse, Error, FormData>({
+    mutationFn: (formData) =>
+      api<BulkUploadResponse>("/uploads/bulk", { method: "POST", body: formData }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["review-queue"] });
+    },
+  });
+}
+
+export function useCsvImport() {
+  const qc = useQueryClient();
+  return useMutation<BulkUploadResponse, Error, FormData>({
+    mutationFn: (formData) =>
+      api<BulkUploadResponse>("/uploads/csv", { method: "POST", body: formData }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["employees"] });
+    },
+  });
+}
+
 // ─── Skills catalog ───────────────────────────────────────────────────────────
 
 export function useSkillsCatalog() {
@@ -221,13 +349,20 @@ export interface SkillGapItem {
   category: string;
   employee_count: number;
   expert_count: number;
+  intermediate_count: number;
   gap_severity: "critical" | "warning" | "healthy";
+  coverage_pct: number;
+}
+
+export interface SkillGapResponse {
+  total_employees: number;
+  items: SkillGapItem[];
 }
 
 export function useSkillGaps() {
-  return useQuery<SkillGapItem[]>({
+  return useQuery<SkillGapResponse>({
     queryKey: ["skill-gaps"],
-    queryFn: () => api<SkillGapItem[]>("/skills/gaps"),
+    queryFn: () => api<SkillGapResponse>("/skills/gaps"),
     staleTime: 60_000,
   });
 }

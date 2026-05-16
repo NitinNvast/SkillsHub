@@ -22,3 +22,18 @@ class UploadStatusResponse(BaseModel):
     status: str
     extracted_payload: dict | None = None
     error: str | None = None
+
+
+class BulkUploadResult(BaseModel):
+    filename: str
+    upload_id: UUID | None = None
+    employee_id: UUID | None = None
+    status: str  # "queued" | "failed"
+    error: str | None = None
+
+
+class BulkUploadResponse(BaseModel):
+    total: int
+    queued: int
+    failed: int
+    results: list[BulkUploadResult]

@@ -10,16 +10,14 @@ The profile summary is what we embed. Its design determines search quality:
 from __future__ import annotations
 
 import logging
-from decimal import Decimal
 from uuid import UUID
 
-from pgvector.sqlalchemy import Vector
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Employee, EmployeeEmbedding, EmployeeSkill, Project
 from app.core.config import settings
+from app.db.models import Employee, EmployeeEmbedding, EmployeeSkill
 
 log = logging.getLogger(__name__)
 

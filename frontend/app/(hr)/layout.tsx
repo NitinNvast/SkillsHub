@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Search, ClipboardList, Users, LogOut, Brain, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, ClipboardList, Users, Users2, TrendingDown, LogOut, Brain, Menu, X } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { useReviewQueue } from "@/lib/api/hooks";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/dashboard",  label: "Dashboard",   icon: LayoutDashboard },
-  { href: "/search",     label: "Search",       icon: Search },
-  { href: "/review",     label: "Review Queue", icon: ClipboardList, badge: true },
-  { href: "/employees",  label: "Directory",    icon: Users },
+  { href: "/dashboard",    label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/search",       label: "Search",        icon: Search },
+  { href: "/team-builder", label: "Team Builder",  icon: Users2 },
+  { href: "/skill-gaps",   label: "Skill Gaps",    icon: TrendingDown },
+  { href: "/review",       label: "Review Queue",  icon: ClipboardList, badge: true },
+  { href: "/employees",    label: "Directory",     icon: Users },
 ];
 
 function SidebarContent({

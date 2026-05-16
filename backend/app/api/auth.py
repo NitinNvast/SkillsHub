@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.deps import CurrentUser, SessionDep
-from app.schemas.auth import LoginRequest, TokenResponse, UserOut
-from app.services.auth import authenticate, issue_token
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from app.services.auth import authenticate, issue_token, register_employee
 
 router = APIRouter()
 
@@ -32,6 +32,17 @@ async def login_form(
     user = await authenticate(session, form.username, form.password)
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    return TokenResponse(access_token=issue_token(user), user=UserOut.model_validate(user))
+
+
+@router.post("/register", response_model=TokenResponse, status_code=201)
+async def register(payload: RegisterRequest, session: SessionDep) -> TokenResponse:
+    user = await register_employee(session, payload.name, payload.email, payload.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists",
+        )
     return TokenResponse(access_token=issue_token(user), user=UserOut.model_validate(user))
 
 

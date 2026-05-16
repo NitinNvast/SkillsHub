@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload, FileText, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { useUploadResume, useUploadText } from "@/lib/api/hooks";
 
 type Tab = "pdf" | "text";
@@ -23,7 +24,10 @@ export default function UploadPage() {
     if (!file.name.endsWith(".pdf")) return;
     const fd = new FormData();
     fd.append("file", file);
-    uploadPdf(fd);
+    uploadPdf(fd, {
+      onSuccess: () => toast.success("Resume submitted! AI is extracting your skills."),
+      onError: (err) => toast.error(err.message || "Resume upload failed. Please try again."),
+    });
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -36,7 +40,10 @@ export default function UploadPage() {
   function handleTextSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
-    uploadText({ text: text.trim() });
+    uploadText({ text: text.trim() }, {
+      onSuccess: () => toast.success("Resume submitted! AI is extracting your skills."),
+      onError: (err) => toast.error(err.message || "Resume upload failed. Please try again."),
+    });
   }
 
   function reset() {

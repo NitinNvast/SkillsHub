@@ -14,6 +14,7 @@ interface AuthState {
   user: SessionUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<SessionUser>;
+  register: (name: string, email: string, password: string) => Promise<SessionUser>;
   logout: () => void;
 }
 
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   login: async () => { throw new Error("AuthProvider not mounted") },
+  register: async () => { throw new Error("AuthProvider not mounted") },
   logout: () => {},
 });
 
@@ -46,6 +48,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res.user;
   }, []);
 
+  const register = useCallback(async (name: string, email: string, password: string): Promise<SessionUser> => {
+    const res = await api<{ access_token: string; user: SessionUser }>(
+      "/auth/register",
+      {
+        method: "POST",
+        body: JSON.stringify({ name, email, password }),
+      }
+    );
+    saveSession(res.access_token, res.user);
+    setUser(res.user);
+    return res.user;
+  }, []);
+
   const logout = useCallback(() => {
     clearSession();
     setUser(null);
@@ -53,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

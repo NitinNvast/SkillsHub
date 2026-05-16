@@ -14,7 +14,7 @@ import uuid
 from datetime import date
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
 from app.db.models import Employee, EmployeeSkill
 from app.db.repos.embeddings import render_profile_summary, upsert_employee_embedding

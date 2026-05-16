@@ -28,6 +28,7 @@ class SkillSource(str, Enum):
     EXTRACTED = "extracted"  # Pulled directly from resume by Claude
     INFERRED = "inferred"  # Derived (e.g., Next.js→React) by Haiku
     MANUAL = "manual"  # Added/edited by employee or HR
+    GITHUB = "github"  # Derived from public GitHub repository analysis
 
 
 class EmployeeSkill(Base):

@@ -169,8 +169,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Skill Gap Analysis */}
-      {gaps && gaps.length > 0 && (
+      {/* Skill Gap Teaser */}
+      {gaps && (
         <div className="mt-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm animate-fade-up" style={{ animationDelay: "220ms" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -179,50 +179,43 @@ export default function DashboardPage() {
               </div>
               <h2 className="text-sm font-semibold">Skill Gap Analysis</h2>
             </div>
-            <span className="text-xs font-medium text-[var(--color-muted-foreground)] bg-[var(--color-muted)] px-2 py-0.5 rounded-full">
-              {gaps.filter(g => g.gap_severity !== "healthy").length} gaps
-            </span>
+            <Link href="/skill-gaps" className="text-xs font-medium text-[var(--color-primary)] hover:underline">
+              View full report →
+            </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-            {gaps.slice(0, 10).map((g, i) => (
-              <div
-                key={g.name}
-                className={cn(
-                  "rounded-xl border border-[var(--color-border)] border-l-4 bg-[var(--color-card)] p-3",
-                  "hover:shadow-md transition-all duration-200 cursor-default",
-                  g.gap_severity === "critical" && "border-l-red-500",
-                  g.gap_severity === "warning"  && "border-l-amber-500",
-                  g.gap_severity === "healthy"  && "border-l-emerald-500",
-                )}
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                <div className={cn(
-                  "inline-flex h-6 w-6 items-center justify-center rounded-md mb-2",
-                  g.gap_severity === "critical" && "bg-red-100 dark:bg-red-900/30",
-                  g.gap_severity === "warning"  && "bg-amber-100 dark:bg-amber-900/30",
-                  g.gap_severity === "healthy"  && "bg-emerald-100 dark:bg-emerald-900/30",
-                )}>
-                  <span className={cn(
-                    "h-2 w-2 rounded-full",
-                    g.gap_severity === "critical" && "bg-red-500",
-                    g.gap_severity === "warning"  && "bg-amber-500",
-                    g.gap_severity === "healthy"  && "bg-emerald-500",
-                  )} />
-                </div>
-                <p className="text-xs font-semibold truncate text-[var(--color-foreground)]">{g.name}</p>
-                <p className={cn(
-                  "text-[10px] mt-1",
-                  g.gap_severity === "critical" && "text-red-600 dark:text-red-400",
-                  g.gap_severity === "warning"  && "text-amber-600 dark:text-amber-400",
-                  g.gap_severity === "healthy"  && "text-emerald-600 dark:text-emerald-400",
-                )}>
-                  {g.employee_count === 0
-                    ? "No coverage"
-                    : `${g.employee_count} emp${g.expert_count > 0 ? ` · ${g.expert_count} expert` : ""}`}
-                </p>
+
+          {/* Three summary stats */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[
+              { label: "Critical", count: gaps.items.filter(g => g.gap_severity === "critical").length, color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20", bar: "bg-red-500" },
+              { label: "Low coverage", count: gaps.items.filter(g => g.gap_severity === "warning").length, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/20", bar: "bg-amber-400" },
+              { label: "Healthy", count: gaps.items.filter(g => g.gap_severity === "healthy").length, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20", bar: "bg-emerald-500" },
+            ].map(({ label, count, color, bg, bar }) => (
+              <div key={label} className={cn("rounded-lg p-3 text-center", bg)}>
+                <p className={cn("text-xl font-bold tabular-nums", color)}>{count}</p>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{label}</p>
               </div>
             ))}
           </div>
+
+          {/* Top critical skills preview */}
+          {gaps.items.filter(g => g.gap_severity === "critical").slice(0, 5).length > 0 && (
+            <div>
+              <p className="text-xs text-[var(--color-muted-foreground)] mb-2">Most critical gaps:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {gaps.items.filter(g => g.gap_severity === "critical").slice(0, 6).map(g => (
+                  <span key={g.name} className="rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                    {g.name}
+                  </span>
+                ))}
+                {gaps.items.filter(g => g.gap_severity === "critical").length > 6 && (
+                  <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] px-2.5 py-0.5 text-xs text-[var(--color-muted-foreground)]">
+                    +{gaps.items.filter(g => g.gap_severity === "critical").length - 6} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
