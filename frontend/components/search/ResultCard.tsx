@@ -24,7 +24,7 @@ export function ResultCard({ result, rank }: { result: SearchResult; rank: numbe
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm hover:shadow-md transition-shadow animate-fade-up">
       <div className="flex items-start gap-4">
         {/* Rank + score */}
         <div className="flex flex-col items-center gap-1 shrink-0">
@@ -65,8 +65,8 @@ export function ResultCard({ result, rank }: { result: SearchResult; rank: numbe
             </span>
           </div>
 
-          {/* AI reasoning */}
-          <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground)]">
+          {/* AI reasoning — italic, muted */}
+          <p className="mt-3 text-sm leading-relaxed italic text-[var(--color-muted-foreground)]">
             {result.reasoning}
           </p>
 
@@ -97,7 +97,13 @@ export function ResultCard({ result, rank }: { result: SearchResult; rank: numbe
             </button>
           )}
 
-          {expanded && (
+          {/* Animated expand/collapse */}
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300",
+              expanded ? "max-h-96" : "max-h-0"
+            )}
+          >
             <div className="mt-3 grid grid-cols-2 gap-4 rounded-lg bg-[var(--color-background)] p-3 text-xs">
               {result.strengths.length > 0 && (
                 <div>
@@ -128,7 +134,7 @@ export function ResultCard({ result, rank }: { result: SearchResult; rank: numbe
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

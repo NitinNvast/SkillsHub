@@ -127,10 +127,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Hero */}
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 mb-5 shadow-sm">
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 mb-5 shadow-sm overflow-hidden">
+        {/* Accent gradient strip */}
+        <div className="h-1.5 rounded-t-xl bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 -mx-6 -mt-6 mb-5" />
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full ring-2 ring-indigo-200 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
+            <div className="h-16 w-16 rounded-full ring-2 ring-indigo-300 dark:ring-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shrink-0">
               {emp.name[0]}
             </div>
             <div>
@@ -216,7 +218,7 @@ export default function ProfilePage() {
           </h2>
           <div className="space-y-3">
             {emp.projects.map((p) => (
-              <div key={p.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] p-4">
+              <div key={p.id} className="rounded-lg border border-[var(--color-border)] border-l-2 border-l-indigo-200 dark:border-l-indigo-800 bg-[var(--color-background)] p-4 pl-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-semibold">{p.name}</p>

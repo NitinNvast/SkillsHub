@@ -108,14 +108,23 @@ export default function SearchPage() {
 
           {/* Empty state */}
           {isEmpty && (
-            <div className="animate-fade-up">
-              <p className="text-xs text-[var(--color-muted-foreground)] mb-3">Try these queries:</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="animate-fade-up flex flex-col items-center text-center py-8">
+              {/* Hero icon */}
+              <div className="mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                <Sparkles className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Ask in plain English</h2>
+              <p className="text-sm text-[var(--color-muted-foreground)] max-w-md leading-relaxed mb-8">
+                Describe who you&apos;re looking for — skills, years, location, availability — in natural language.
+              </p>
+
+              {/* Demo query chips */}
+              <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
                 {DEMO_QUERIES.map((q) => (
                   <button
                     key={q}
                     onClick={() => handleSearch(q)}
-                    className="rounded-full border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] transition text-left cursor-pointer"
+                    className="rounded-full border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs text-[var(--color-muted-foreground)] hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]/30 hover:text-[var(--color-foreground)] transition text-left cursor-pointer"
                   >
                     {q.length > 60 ? q.slice(0, 57) + "…" : q}
                   </button>
@@ -145,7 +154,7 @@ export default function SearchPage() {
               {turn.response && (
                 <div className="space-y-4">
                   {/* Parsed query card */}
-                  <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-sm">
+                  <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/10 dark:to-violet-900/10 p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="h-4 w-4 text-[var(--color-primary)]" />
                       <span className="text-xs font-semibold text-[var(--color-primary)]">AI Query Understanding</span>
@@ -225,7 +234,7 @@ export default function SearchPage() {
       {/* Input bar */}
       <div className="shrink-0 border-t border-[var(--color-border)] bg-[var(--color-background)] px-4 sm:px-8 py-4">
         <div className="max-w-4xl mx-auto">
-          <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/25 transition-all duration-150">
+          <div className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/25 focus-within:shadow-lg transition-all duration-150">
             <textarea
               ref={inputRef}
               value={query}

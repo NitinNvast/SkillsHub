@@ -9,6 +9,13 @@ type Tab = "pdf" | "text";
 
 const TAB_LABELS: Record<Tab, string> = { pdf: "PDF Resume", text: "Paste Text" };
 
+const WHAT_NEXT_STEPS = [
+  "Claude AI extracts skills, projects, and certifications",
+  "AI infers additional skills from your project descriptions",
+  "HR reviews and approves your profile",
+  "Your profile becomes searchable for project assignments",
+];
+
 export default function UploadPage() {
   const [tab, setTab] = useState<Tab>("pdf");
   const [text, setText] = useState("");
@@ -57,29 +64,32 @@ export default function UploadPage() {
   if (result) {
     return (
       <div className="px-4 sm:px-8 py-8 max-w-xl mx-auto">
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
-          <CheckCircle className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-emerald-900">Resume submitted!</h2>
-          <p className="text-sm text-emerald-700 mt-2 leading-relaxed">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800/50 p-8 text-center shadow-sm animate-scale-in">
+          {/* Celebratory icon with ring */}
+          <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 ring-4 ring-emerald-500/20 mb-4">
+            <CheckCircle className="h-16 w-16 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <h2 className="text-lg font-bold text-emerald-900 dark:text-emerald-200">Resume submitted!</h2>
+          <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-2 leading-relaxed">
             Your resume is being processed by AI. An HR team member will review and approve it shortly.
           </p>
-          <div className="mt-4 rounded-lg bg-white border border-emerald-200 px-4 py-3 text-left text-sm space-y-1 shadow-sm">
+          <div className="mt-4 rounded-lg bg-white dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-4 py-3 text-left text-sm space-y-1 shadow-sm">
             <div className="flex justify-between">
               <span className="text-[var(--color-muted-foreground)]">Upload ID</span>
               <span className="font-mono text-xs">{result.upload_id.slice(0, 8)}…</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--color-muted-foreground)]">Status</span>
-              <span className="text-amber-600 font-semibold">Pending review</span>
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">Pending review</span>
             </div>
           </div>
-          <p className="mt-4 text-xs text-emerald-600 flex items-center justify-center gap-1">
+          <p className="mt-4 text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
             <Sparkles className="h-3.5 w-3.5" />
             AI is extracting and inferring skills from your profile
           </p>
           <button
             onClick={reset}
-            className="mt-6 text-sm text-emerald-700 hover:underline cursor-pointer"
+            className="mt-6 text-sm text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
           >
             Upload another resume
           </button>
@@ -124,7 +134,7 @@ export default function UploadPage() {
             onClick={() => fileInputRef.current?.click()}
             className={`group cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
               dragOver
-                ? "border-[var(--color-primary)] bg-indigo-50 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/20"
+                ? "border-[var(--color-primary)] bg-indigo-50 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/20 scale-[1.02]"
                 : "border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 hover:shadow-md"
             }`}
           >
@@ -141,7 +151,11 @@ export default function UploadPage() {
                   <Sparkles className="h-10 w-10 text-[var(--color-primary)] animate-pulse" />
                 </div>
                 <p className="text-sm font-semibold">AI is extracting skills…</p>
-                <p className="text-xs text-[var(--color-muted-foreground)]">This may take 15–30 seconds</p>
+                {/* Animated progress bar */}
+                <div className="w-full max-w-xs mx-auto h-1.5 bg-[var(--color-muted)] rounded-full overflow-hidden">
+                  <div className="h-full w-1/3 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full animate-[shimmer_1.5s_infinite]" style={{ backgroundSize: "200% 100%" }} />
+                </div>
+                <p className="text-xs text-[var(--color-muted-foreground)]">Extracting skills… This may take 15–30 seconds</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -152,6 +166,11 @@ export default function UploadPage() {
                 </div>
                 <p className="text-sm font-semibold mt-2">Drop your PDF here or click to browse</p>
                 <p className="text-xs text-[var(--color-muted-foreground)]">PDF files only · Max 10 MB</p>
+                {/* Supported format badge */}
+                <div className="inline-flex items-center gap-1.5 mt-2 rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-1 text-[10px] font-semibold text-[var(--color-muted-foreground)]">
+                  <FileText className="h-3 w-3" />
+                  PDF only
+                </div>
               </div>
             )}
           </div>
@@ -199,22 +218,31 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* What happens next */}
-      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 space-y-2 shadow-sm">
-        <p className="text-xs font-semibold text-[var(--color-foreground)]">What happens after upload?</p>
-        {[
-          "Claude AI extracts skills, projects, and certifications",
-          "AI infers additional skills from your project descriptions",
-          "HR reviews and approves your profile",
-          "Your profile becomes searchable for project assignments",
-        ].map((step, i) => (
-          <div key={i} className="flex items-start gap-2 text-xs text-[var(--color-muted-foreground)]">
-            <span className="shrink-0 h-4 w-4 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-semibold" style={{ fontSize: "9px" }}>
-              {i + 1}
-            </span>
-            {step}
-          </div>
-        ))}
+      {/* What happens next — timeline style */}
+      <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-sm">
+        <p className="text-xs font-semibold text-[var(--color-foreground)] mb-4">What happens after upload?</p>
+        <div className="space-y-0">
+          {WHAT_NEXT_STEPS.map((step, i) => {
+            const isLast = i === WHAT_NEXT_STEPS.length - 1;
+            return (
+              <div key={i} className="flex gap-3">
+                {/* Timeline left side */}
+                <div className="flex flex-col items-center">
+                  <div className="shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold z-10" style={{ fontSize: "9px" }}>
+                    {i + 1}
+                  </div>
+                  {!isLast && (
+                    <div className="w-px flex-1 bg-[var(--color-border)] mt-1 mb-1" style={{ minHeight: "16px" }} />
+                  )}
+                </div>
+                {/* Step text */}
+                <p className={`text-xs text-[var(--color-muted-foreground)] leading-snug ${isLast ? "" : "pb-4"}`}>
+                  {step}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

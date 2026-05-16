@@ -15,15 +15,17 @@ export function ScoreRing({ score, size = 60 }: Props) {
     : score >= 65 ? "#f59e0b" // amber-500
     : "#ef4444";              // red-500
 
-  const trackColor =
-    score >= 85 ? "#dcfce7"
-    : score >= 65 ? "#fef3c7"
-    : "#fee2e2";
-
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={trackColor} strokeWidth={7} />
+        {/* Track ring: uses CSS currentColor so it respects dark mode via opacity */}
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={7}
+          className="text-[var(--color-muted)] opacity-60"
+        />
         <circle
           cx={size / 2} cy={size / 2} r={r}
           fill="none"

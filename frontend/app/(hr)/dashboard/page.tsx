@@ -5,8 +5,16 @@ import type { Route } from "next";
 import { useEffect, useState } from "react";
 import { Users, ClipboardList, Search, TrendingUp, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { useEmployees, useReviewQueue, useSkillGaps } from "@/lib/api/hooks";
+import { useAuth } from "@/lib/auth/context";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 const AVAILABILITY_COLOR: Record<string, string> = {
   available: "bg-gradient-to-r from-emerald-400 to-emerald-500",
@@ -15,6 +23,7 @@ const AVAILABILITY_COLOR: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { data: employees, isLoading: loadingEmp } = useEmployees();
   const { data: queue, isLoading: loadingQueue } = useReviewQueue();
   const { data: gaps } = useSkillGaps();
@@ -39,7 +48,9 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8 pb-6 border-b border-[var(--color-border)] animate-fade-up">
         <div className="w-10 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-3" />
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {getGreeting()}{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+        </h1>
         <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
           Overview of your talent pool and pending reviews.
         </p>
@@ -80,6 +91,7 @@ export default function DashboardPage() {
               bg="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20"
               accent="border-l-purple-500"
               href="/review"
+              pulse={pending > 0}
             />
           </>
         )}
@@ -107,14 +119,18 @@ export default function DashboardPage() {
                     <span className="font-medium">{label}</span>
                     <span className="text-[var(--color-muted-foreground)] tabular-nums">{count} · {Math.round(pct)}%</span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-[var(--color-muted)] overflow-hidden">
+                  <div className="h-3 rounded-full bg-[var(--color-muted)] overflow-hidden relative">
                     <div
-                      className={`h-full rounded-full ${AVAILABILITY_COLOR[key]}`}
+                      className={`h-full rounded-full ${AVAILABILITY_COLOR[key]} flex items-center justify-end pr-1.5 overflow-hidden`}
                       style={{
                         width: barsVisible ? `${pct}%` : "0%",
                         transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
                       }}
-                    />
+                    >
+                      {pct > 15 && (
+                        <span className="text-[9px] font-bold text-white leading-none">{Math.round(pct)}%</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -228,10 +244,11 @@ export default function DashboardPage() {
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <Search className="h-5 w-5 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold group-hover:text-[var(--color-primary)] transition-colors">Talent Search</p>
             <p className="text-xs text-[var(--color-muted-foreground)]">Ask in plain English — get ranked candidates</p>
           </div>
+          <span className="text-[var(--color-muted-foreground)] group-hover:translate-x-1 transition-transform duration-200 shrink-0">→</span>
         </Link>
         <Link
           href="/employees"
@@ -240,10 +257,11 @@ export default function DashboardPage() {
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold group-hover:text-[var(--color-primary)] transition-colors">Employee Directory</p>
             <p className="text-xs text-[var(--color-muted-foreground)]">Browse and filter your talent pool</p>
           </div>
+          <span className="text-[var(--color-muted-foreground)] group-hover:translate-x-1 transition-transform duration-200 shrink-0">→</span>
         </Link>
       </div>
     </div>
@@ -251,11 +269,11 @@ export default function DashboardPage() {
 }
 
 function StatCard({
-  icon, label, value, bg, accent, sub, href,
+  icon, label, value, bg, accent, sub, href, pulse,
 }: {
   icon: React.ReactNode; label: string; value: number;
   bg: string; accent: string;
-  sub?: string; href?: Route;
+  sub?: string; href?: Route; pulse?: boolean;
 }) {
   const inner = (
     <div className={cn(
@@ -263,10 +281,15 @@ function StatCard({
       "hover:shadow-lg transition-all duration-200 shadow-sm group cursor-default min-h-[130px]",
       accent,
     )}>
-      <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl mb-3", bg)}>
-        {icon}
+      <div className="flex items-center justify-between mb-3">
+        <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl", bg)}>
+          {icon}
+        </div>
+        {pulse && (
+          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+        )}
       </div>
-      <p className="text-2xl font-bold tracking-tight animate-count-up">{value}</p>
+      <p className="text-3xl font-bold tracking-tight animate-count-up">{value}</p>
       <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5 font-medium">{label}</p>
       {sub && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">{sub}</p>}
     </div>

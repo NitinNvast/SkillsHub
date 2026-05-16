@@ -11,6 +11,14 @@ const SOURCE_LABEL: Record<string, string> = {
   linkedin: "LinkedIn",
 };
 
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const d = Math.floor(diff / 86400000);
+  if (d === 0) return "today";
+  if (d === 1) return "yesterday";
+  return `${d}d ago`;
+}
+
 export default function ReviewQueuePage() {
   const { data: queue, isLoading, isError } = useReviewQueue();
 
@@ -72,6 +80,11 @@ export default function ReviewQueuePage() {
                     <span className="shrink-0 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] text-[var(--color-muted-foreground)]">
                       {SOURCE_LABEL[item.source] ?? item.source}
                     </span>
+                    {!isFailed && item.skill_count > 0 && (
+                      <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-400">
+                        {item.skill_count} skills
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-[var(--color-muted-foreground)]">
                     {isFailed ? (
@@ -87,9 +100,12 @@ export default function ReviewQueuePage() {
                   </div>
                 </div>
 
-                <div className="shrink-0 flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]">
+                <div
+                  className="shrink-0 flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]"
+                  title={new Date(item.created_at).toLocaleDateString()}
+                >
                   <Clock className="h-3.5 w-3.5" />
-                  {new Date(item.created_at).toLocaleDateString()}
+                  {relativeTime(item.created_at)}
                 </div>
 
                 <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${

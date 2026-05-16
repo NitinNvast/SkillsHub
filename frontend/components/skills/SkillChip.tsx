@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
 const CATEGORY_STYLES: Record<string, string> = {
-  language:  "bg-blue-50 text-blue-700 border-blue-200",
-  framework: "bg-violet-50 text-violet-700 border-violet-200",
-  platform:  "bg-orange-50 text-orange-700 border-orange-200",
-  tool:      "bg-slate-50 text-slate-700 border-slate-200",
-  domain:    "bg-emerald-50 text-emerald-700 border-emerald-200",
+  language:  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/50",
+  framework: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800/50",
+  platform:  "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800/50",
+  tool:      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50",
+  domain:    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/50",
 };
 
 const PROFICIENCY_DOT: Record<string, string> = {

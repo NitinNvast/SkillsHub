@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { Search, MapPin, Briefcase, UserPlus, Upload, FileText, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Search, MapPin, UserPlus, Upload, FileText, X, CheckCircle, AlertCircle } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { useEmployees, useCreateEmployee, useBulkUpload, useCsvImport, type BulkUploadResult } from "@/lib/api/hooks";
@@ -10,16 +10,34 @@ import { SkeletonCard } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
 
-const AVAILABILITY_STYLE: Record<string, string> = {
-  available: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  partial:   "bg-amber-50 text-amber-700 border-amber-200",
-  allocated: "bg-slate-100 text-slate-600 border-slate-200",
-};
-
 const AVAILABILITY_LABEL: Record<string, string> = {
   available: "Available",
   partial:   "Partial",
   allocated: "Allocated",
+};
+
+const AVAILABILITY_BAR: Record<string, string> = {
+  available: "bg-emerald-400",
+  partial:   "bg-amber-400",
+  allocated: "bg-slate-300 dark:bg-slate-600",
+};
+
+const AVAILABILITY_RING: Record<string, string> = {
+  available: "ring-emerald-400/50",
+  partial:   "ring-amber-400/50",
+  allocated: "ring-slate-300/50 dark:ring-slate-600/50",
+};
+
+const AVAILABILITY_DOT: Record<string, string> = {
+  available: "bg-emerald-500",
+  partial:   "bg-amber-400",
+  allocated: "bg-slate-400",
+};
+
+const AVAILABILITY_TEXT: Record<string, string> = {
+  available: "text-emerald-700 dark:text-emerald-400",
+  partial:   "text-amber-700 dark:text-amber-400",
+  allocated: "text-slate-500 dark:text-slate-400",
 };
 
 type BulkTab = "pdf" | "csv";
@@ -384,8 +402,12 @@ export default function EmployeesPage() {
       )}
 
       {!isLoading && employees?.length === 0 && (
-        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-12 text-center">
-          <p className="text-sm text-[var(--color-muted-foreground)]">No employees found.</p>
+        <div className="rounded-xl border border-dashed border-[var(--color-border)] p-14 text-center">
+          <Search className="h-10 w-10 text-[var(--color-muted-foreground)] mx-auto mb-3 opacity-40" />
+          <p className="text-sm font-semibold text-[var(--color-foreground)]">No employees found</p>
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+            {q ? "Try a different search term." : "Add employees using the buttons above."}
+          </p>
         </div>
       )}
 
@@ -395,55 +417,70 @@ export default function EmployeesPage() {
             <Link
               key={emp.id}
               href={`/employees/${emp.id}`}
-              className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800 hover:-translate-y-0.5 transition-all duration-200 shadow-sm"
+              className="group relative rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-700 hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex flex-col gap-3 overflow-hidden"
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{emp.name}</p>
-                  <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-[var(--color-muted-foreground)]">
-                    {emp.title && (
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="h-3 w-3" />{emp.title}
+              {/* Availability accent strip */}
+              <div className={cn("absolute top-0 inset-x-0 h-0.5", AVAILABILITY_BAR[emp.availability] ?? AVAILABILITY_BAR.allocated)} />
+
+              {/* Header: avatar + name + exp */}
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "h-11 w-11 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2",
+                  AVAILABILITY_RING[emp.availability] ?? AVAILABILITY_RING.allocated,
+                )}>
+                  {emp.name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold truncate group-hover:text-[var(--color-primary)] transition-colors">
+                      {emp.name}
+                    </p>
+                    {emp.total_years_exp != null && (
+                      <span className="shrink-0 text-xs font-semibold tabular-nums text-[var(--color-muted-foreground)]">
+                        {emp.total_years_exp}y
                       </span>
                     )}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[var(--color-muted-foreground)] min-w-0">
+                    {emp.title && <span className="truncate">{emp.title}</span>}
+                    {emp.title && emp.location && <span className="opacity-30 shrink-0">·</span>}
                     {emp.location && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-0.5 shrink-0">
                         <MapPin className="h-3 w-3" />{emp.location}
                       </span>
                     )}
                   </div>
                 </div>
-                <span className={cn(
-                  "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold",
-                  AVAILABILITY_STYLE[emp.availability] ?? AVAILABILITY_STYLE.allocated,
-                )}>
-                  {AVAILABILITY_LABEL[emp.availability] ?? "Allocated"}
-                </span>
               </div>
 
-              {emp.top_skills.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {emp.top_skills.slice(0, 5).map((s) => (
+              {/* Skills + availability */}
+              <div className="flex items-end justify-between gap-3 min-h-[24px]">
+                <div className="flex flex-wrap gap-x-1.5 gap-y-1 flex-1 min-w-0">
+                  {emp.top_skills.slice(0, 4).map((s) => (
                     <span
                       key={s}
-                      className="rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-[10px] text-[var(--color-muted-foreground)]"
+                      className="rounded-full border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300"
                     >
                       {s}
                     </span>
                   ))}
-                  {emp.top_skills.length > 5 && (
-                    <span className="rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-[10px] text-[var(--color-muted-foreground)]">
-                      +{emp.top_skills.length - 5}
+                  {emp.top_skills.length > 4 && (
+                    <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--color-muted-foreground)]">
+                      +{emp.top_skills.length - 4}
                     </span>
                   )}
+                  {emp.top_skills.length === 0 && (
+                    <span className="text-xs text-[var(--color-muted-foreground)] italic">No skills yet</span>
+                  )}
                 </div>
-              )}
-
-              {emp.total_years_exp != null && (
-                <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
-                  {emp.total_years_exp}y experience
-                </p>
-              )}
+                <span className={cn(
+                  "shrink-0 flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap",
+                  AVAILABILITY_TEXT[emp.availability] ?? AVAILABILITY_TEXT.allocated,
+                )}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", AVAILABILITY_DOT[emp.availability] ?? AVAILABILITY_DOT.allocated)} />
+                  {AVAILABILITY_LABEL[emp.availability] ?? "Allocated"}
+                </span>
+              </div>
             </Link>
           ))}
         </div>
