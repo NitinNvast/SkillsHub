@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Briefcase, Calendar, FolderOpen, Award, Sparkles, Github } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Briefcase, Calendar, FolderOpen, Award, Sparkles, Github, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useMyEmployee, useGitHubSync } from "@/lib/api/hooks";
 import { SkillChip } from "@/components/skills/SkillChip";
@@ -57,9 +58,16 @@ export default function ProfilePage() {
         <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-card)] p-14 text-center">
           <Sparkles className="h-10 w-10 text-[var(--color-muted-foreground)] mx-auto mb-3 opacity-40" />
           <p className="text-sm font-semibold">No profile yet</p>
-          <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-            Upload your resume and wait for HR to approve your profile.
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-1 mb-4">
+            Upload your resume or LinkedIn export — AI extracts your skills automatically.
           </p>
+          <Link
+            href="/upload"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 transition"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Resume
+          </Link>
         </div>
       </div>
     );
@@ -154,6 +162,7 @@ export default function ProfilePage() {
                         proficiency={s.proficiency}
                         years={s.years}
                         inferred={s.source === "inferred"}
+                        fromGithub={s.source === "github"}
                       />
                     ))}
                 </div>

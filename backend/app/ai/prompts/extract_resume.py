@@ -137,10 +137,29 @@ _SYSTEM_BASE = """\
 You are a senior technical recruiter and software engineer. Your task is to extract \
 a complete, accurate structured profile from a developer resume or LinkedIn export.
 
-## IMPORTANT RULES
+## INPUT FORMAT
+
+The input may be any of the following — handle each correctly:
+
+- **Traditional resume (PDF text)** — chronological or functional layout with sections like
+  Work Experience, Skills, Education, Certifications.
+- **LinkedIn profile copy-paste** — text copied directly from a LinkedIn profile page.
+  Typical layout: name + headline → About → Experience (job title, company, dates, bullets) →
+  Education → Skills (with endorsement counts) → Licenses & Certifications →
+  Accomplishments. Ignore UI chrome like "Connect", "Message", "500+ connections",
+  "LinkedIn Member since", follower counts, and "Show all X" buttons.
+- **LinkedIn PDF export** — LinkedIn's "Save to PDF" output. Sections are well-structured
+  but may repeat the name/headline at the top of each page.
+- **LinkedIn data export text** — CSV or structured text from LinkedIn's "Get a copy of
+  your data" download. Skills appear as a comma-separated list; positions include
+  start/end dates in ISO format.
+
+## EXTRACTION RULES
 
 1. **Extract every skill** — languages, frameworks, platforms, tools, and domain expertise.
    Do not omit skills just because they appear only in project descriptions.
+   For LinkedIn profiles, the "Skills" section with endorsement counts is a primary source —
+   high endorsement counts (50+) are a signal of genuine expertise.
 
 2. **Proficiency is determined by evidence, not by what the candidate claims.** Follow the \
    explicit rules in the tool schema — do not use "expert" unless there are 4+ years or a \
@@ -154,20 +173,20 @@ a complete, accurate structured profile from a developer resume or LinkedIn expo
    Next.js (not NextJS), Node.js (not NodeJS), PostgreSQL (not Postgres), etc.
 
 5. **Total years** — calculate from the earliest job start date to today. If dates are absent,
-   infer from the level of seniority described.
+   infer from the level of seniority described. LinkedIn dates like "Jan 2019 – Present" or
+   "2019 – 2022 · 3 yrs 2 mos" are authoritative — use them directly.
 
-6. **Projects** — extract each role/job as a project. Include client projects, side projects,
-   and open source contributions if mentioned.
+6. **Projects** — extract each role/job as a project. Use the company + title as the project
+   name when a project name is not given. Include side projects and open source if mentioned.
 
 7. **Do not hallucinate.** If information is absent, omit it or set it to null. Never invent
-   skills, projects, or certifications.
+   skills, projects, or certifications. Ignore LinkedIn UI boilerplate.
 
 8. **Confidence calibration:**
-   - 0.95 — explicitly stated with year count ("5 years of React")
-   - 0.85 — clearly present, used on multiple projects, no year count
-   - 0.70 — mentioned once, context is thin
-   - 0.55 — inferred from adjacent technology (do not use this for primary extraction — \
-     reserve for the inference step)
+   - 0.95 — explicitly stated with year count ("5 years of React") or high endorsements (50+)
+   - 0.85 — clearly present, used on multiple projects, or moderate endorsements (10–49)
+   - 0.70 — mentioned once, context is thin, or low endorsements (<10)
+   - 0.55 — inferred from adjacent technology (reserve for the inference step)
 
 Call the `extract_profile` tool exactly once with the complete extracted profile.\
 """
@@ -188,9 +207,43 @@ def build_system_prompt(canonical_skills: list[str] | None = None) -> str:
     return content
 
 
+_LINKEDIN_SIGNALS = (
+    "linkedin.com/in/",
+    "connections",
+    "· 1st",
+    "· 2nd",
+    "endorsements",
+    "licenses & certifications",
+    "licenses & certi",
+    "show all",
+    "top skills",
+    "open to work",
+)
+
+
+def _detect_linkedin(text: str) -> bool:
+    lower = text.lower()
+    return sum(1 for s in _LINKEDIN_SIGNALS if s in lower) >= 2
+
+
 def build_user_message(raw_text: str) -> str:
+    is_linkedin = _detect_linkedin(raw_text)
+    source_hint = (
+        "LinkedIn profile export"
+        if is_linkedin
+        else "resume"
+    )
+    linkedin_note = (
+        "\n\nNote: this is a LinkedIn profile copy-paste. "
+        "Ignore navigation chrome ('Connect', 'Message', 'Show all N', follower/connection counts). "
+        "The Skills section lists skills with endorsement counts — extract all of them. "
+        "Each Experience entry maps to a project."
+        if is_linkedin
+        else ""
+    )
     return (
-        f"Please extract the structured profile from the following resume:\n\n"
-        f"---\n{raw_text[:12000]}\n---\n\n"  # cap at 12k chars (~3k tokens) — ample for any resume
+        f"Please extract the structured profile from the following {source_hint}:"
+        f"{linkedin_note}\n\n"
+        f"---\n{raw_text[:12000]}\n---\n\n"
         f"Call the extract_profile tool with the complete extracted data."
     )

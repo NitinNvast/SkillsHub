@@ -5,11 +5,14 @@ import { Upload, FileText, CheckCircle, AlertCircle, Sparkles } from "lucide-rea
 import { toast } from "sonner";
 import { useUploadResume, useUploadText } from "@/lib/api/hooks";
 
-type Tab = "pdf" | "text";
+type Tab = "pdf" | "linkedin" | "text";
+
+const TAB_LABELS: Record<Tab, string> = { pdf: "PDF Resume", linkedin: "LinkedIn", text: "Paste Text" };
 
 export default function UploadPage() {
   const [tab, setTab] = useState<Tab>("pdf");
   const [text, setText] = useState("");
+  const [linkedinText, setLinkedinText] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,10 +49,20 @@ export default function UploadPage() {
     });
   }
 
+  function handleLinkedinSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!linkedinText.trim()) return;
+    uploadText({ text: linkedinText.trim() }, {
+      onSuccess: () => toast.success("Resume submitted! AI is extracting your skills."),
+      onError: (err) => toast.error(err.message || "Resume upload failed. Please try again."),
+    });
+  }
+
   function reset() {
     resetPdf();
     resetText();
     setText("");
+    setLinkedinText("");
   }
 
   if (result) {
@@ -98,7 +111,7 @@ export default function UploadPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-[var(--color-muted)] p-1 mb-6">
-        {(["pdf", "text"] as Tab[]).map((t) => (
+        {(["pdf", "linkedin", "text"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -108,12 +121,12 @@ export default function UploadPage() {
                 : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
             }`}
           >
-            {t === "pdf" ? "PDF Upload" : "Paste Text"}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
 
-      {tab === "pdf" ? (
+      {tab === "pdf" && (
         <div>
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -154,7 +167,46 @@ export default function UploadPage() {
             )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {tab === "linkedin" && (
+        <form onSubmit={handleLinkedinSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-1.5">
+              Paste LinkedIn profile text
+            </label>
+            <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 p-3 text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+              <strong>How to get your LinkedIn data:</strong> Open your LinkedIn profile → select all text on the page (Ctrl+A) → copy → paste below. Or download your LinkedIn PDF: More → Save to PDF → upload it on the PDF tab.
+            </div>
+            <textarea
+              value={linkedinText}
+              onChange={(e) => setLinkedinText(e.target.value)}
+              placeholder="Go to your LinkedIn profile → click More → Save to PDF, then upload above. Or: open your LinkedIn profile in a browser, select all (Ctrl+A), copy (Ctrl+C), then paste here."
+              rows={14}
+              className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition shadow-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isPending || !linkedinText.trim()}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 py-2.5 text-sm font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 disabled:opacity-60 transition cursor-pointer"
+          >
+            {isPending ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                AI is extracting skills…
+              </>
+            ) : (
+              <>
+                <FileText className="h-4 w-4" />
+                Extract Skills with AI
+              </>
+            )}
+          </button>
+        </form>
+      )}
+
+      {tab === "text" && (
         <form onSubmit={handleTextSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold mb-1.5">
